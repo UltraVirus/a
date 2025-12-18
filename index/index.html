@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PackStorm</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="search-overlay" id="searchOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; height: 60px; background: #181920; z-index: 9998; align-items: center; padding: 0 20px; gap: 15px;">
+        <button id="closeSearchOverlay" style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center;"><img src="./icons/back_icon.webp" alt="Back" style="width: 24px; height: 24px;"></button>
+        <input type="text" class="search-bar" id="searchBarOverlay" placeholder="Search cards..." style="max-width: none; flex: 1; opacity: 0.5;">
+    </div>
+    <img src="./icons/logo.png" alt="PackStorm" style="position: fixed; left: 20px; top: 20px; height: 18px; width: auto; cursor: pointer; z-index: 10001;" id="logo">
+    <div class="topbar">
+        <img src="./icons/logo.png" alt="PackStorm" class="logo" id="logo">
+        <div class="topbar-left">
+        </div>
+        <div class="topbar-right" id="topbarRight">
+            <button id="searchIconBtn" style="background: none; border: none; cursor: pointer; padding: 0;" class="search-icon-btn"><img src="./icons/search_icon.webp" alt="Search" style="width: 24px; height: 24px;"></button>
+            <button class="filter-btn" id="filterBtn" style="display: none;"><img src="./icons/filter_icon.png" alt="Filter"></button>
+            <div class="profile-pic" id="profilePic" style="display: none;"></div>
+        </div>
+        <div class="profile-dropdown" id="profileDropdown">
+            <div class="profile-email" id="profileEmail"></div>
+            <button class="settings-btn" id="settingsBtn">Settings</button>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </div>
+
+    <button class="side-toggle" id="sideToggle">◀</button>
+
+    <div class="side-overlay" id="sideOverlay"></div>
+    <div class="side-menu" id="sideMenu">
+        <div id="scannedCards">
+            <div class="side-menu-empty" style="grid-column: 1/-1;">
+                <div class="side-menu-empty-icon">📋</div>
+                <div class="side-menu-empty-text">No cards scanned yet</div>
+                <div class="side-menu-empty-subtext">Scanned cards will appear here</div>
+            </div>
+        </div>
+    </div>
+    <div class="side-menu-header" id="sideMenuHeader">
+        <div class="side-menu-title">Scanned Cards This Session</div>
+    </div>
+
+    <div class="tab-content active" id="captureTab">
+        <video id="video" autoplay playsinline></video>
+        <div class="scan-status" id="scanStatus" style="display: none;"></div>
+        <div class="capture-controls">
+            <button class="capture-btn" id="captureBtn"></button>
+        </div>
+    </div>
+
+    <div class="tab-content" id="browseTab">
+        <div class="cards-grid" id="cardsGrid"></div>
+        <div class="loading" id="loading" style="display: none;">Loading...</div>
+    </div>
+
+    <div class="tab-content" id="collectionTab">
+        <div style="color: white; text-align: center; padding: 40px;">Collection - Coming Soon</div>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-item active" id="navCapture">
+            <img src="./icons/capture_icon.webp" alt="Capture" class="nav-icon">
+            <span class="nav-label">Capture</span>
+        </button>
+        <button class="nav-item" id="navBrowse">
+            <img src="./icons/browse_icon.webp" alt="Browse" class="nav-icon">
+            <span class="nav-label">Browse</span>
+        </button>
+        <button class="nav-item" id="navCollection">
+            <img src="./icons/collection_icon.webp" alt="Collection" class="nav-icon">
+            <span class="nav-label">Collection</span>
+        </button>
+    </div>
+
+    <div class="card-modal-overlay" id="cardModal">
+        <button class="card-modal-close" id="modalClose">×</button>
+        <div class="card-modal-container" id="modalBody"></div>
+    </div>
+
+    <div class="auth-modal" id="authModal">
+        <div class="auth-modal-content">
+            <h2 class="auth-modal-title" id="authTitle">Login</h2>
+            <div class="auth-inputs">
+                <input type="email" class="auth-input" id="authEmailLogin" placeholder="Email">
+                <input type="password" class="auth-input" id="authPasswordLogin" placeholder="Password">
+            </div>
+            <div class="auth-inputs" id="signupInputs" style="display: none;">
+                <input type="email" class="auth-input" id="authEmailSignup" placeholder="Email">
+                <input type="password" class="auth-input" id="authPasswordSignup" placeholder="Password">
+            </div>
+            <div id="termsDiv" style="display: none; align-items: center; gap: 8px; margin-bottom: 20px; color: #e4e4e7; font-size: 14px; width: 100%; font-family: 'Inter', sans-serif;">
+                <div id="termsCheckbox" style="width: 24px; height: 24px; cursor: pointer; background: rgba(228, 228, 231, 0.05); border: none; border-radius: 4px; opacity: 0.5; transition: all 0.2s; flex-shrink: 0;"></div>
+                <label style="cursor: default;">Accept <span style="text-decoration: underline; cursor: pointer;" id="termsText">terms and conditions</span></label>
+            </div>
+            <button class="auth-submit" id="authSubmit" disabled>Login</button>
+            <div style="text-align: center; margin-top: 20px; color: #a1a1aa; font-family: 'Inter', sans-serif;">
+                <span id="authToggleText">Don't have an account? </span>
+                <button id="authToggle" style="background: none; border: none; color: #ff5555; cursor: pointer; font-weight: 600; padding: 0; font-family: 'Inter', sans-serif; font-size: 15px;">Sign Up</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-modal" id="filterModal">
+        <div class="filter-modal-content">
+            <button class="modal-close" id="filterClose">×</button>
+            <h2 class="filter-modal-title">Filter Cards</h2>
+            
+            <div class="filter-group">
+                <label class="filter-label">Series</label>
+                <input type="text" class="filter-input" id="filterSeries" placeholder="Enter series name...">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Price Range</label>
+                <div class="price-slider" id="priceSlider">
+                    <div class="price-slider-track"></div>
+                    <div class="price-slider-range" id="priceRange"></div>
+                    <div class="price-slider-handle" id="minHandle"></div>
+                    <div class="price-slider-handle" id="maxHandle"></div>
+                </div>
+                <div class="price-inputs">
+                    <input type="number" class="filter-input" id="filterMinPrice" placeholder="Min $" readonly>
+                    <input type="number" class="filter-input" id="filterMaxPrice" placeholder="Max $" readonly>
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button class="filter-clear" id="filterClear">Clear</button>
+                <button class="filter-apply" id="filterApply">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-sidebar">
+            <div class="settings-header">
+                <h2 class="settings-title">Settings</h2>
+                <button class="settings-close" id="settingsClose">×</button>
+            </div>
+            <div class="settings-nav">
+                <button class="settings-nav-item active" id="navAccount">Account</button>
+                <button class="settings-nav-item" id="navSubscription">Subscription</button>
+            </div>
+        </div>
+        <div class="settings-content">
+            <div class="settings-section active" id="accountSection">
+                <h3 class="settings-section-title">Account Settings</h3>
+                <div class="account-field">
+                    <div class="account-field-info">
+                        <span class="account-field-label">Email</span>
+                        <span class="account-field-value" id="accountEmailDisplay">Loading...</span>
+                    </div>
+                    <button class="account-edit-btn" id="changeEmailBtn">
+                        <img src="./icons/edit_icon.webp" alt="Edit" class="account-edit-icon">
+                    </button>
+                </div>
+                <div class="account-field">
+                    <div class="account-field-info">
+                        <span class="account-field-label">Password</span>
+                        <span class="account-field-value">••••••••</span>
+                    </div>
+                    <button class="account-edit-btn" id="changePasswordBtn">
+                        <img src="./icons/edit_icon.webp" alt="Edit" class="account-edit-icon">
+                    </button>
+                </div>
+            </div>
+            <div class="settings-section" id="subscriptionSection">
+                <h3 class="settings-section-title">Subscription</h3>
+                <div style="color: #e4e4e7; font-size: 16px; margin-bottom: 10px;">
+                    <span style="color: #a1a1aa;">Subscription Plan:</span> 
+                    <span id="subscriptionPlanText" style="font-weight: 600; color: #ff5555;">Loading...</span>
+                </div>
+                <button style="padding: 10px 20px; background: #ff5555; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 20px;" id="viewSubscriptionsBtn">View All Plans</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="subscription-modal" id="subscriptionModal">
+        <button class="subscription-close" id="subscriptionClose">×</button>
+        <div class="subscription-header">
+            <h1 class="subscription-title">Choose Your Plan</h1>
+            <p class="subscription-subtitle">Unlock premium features with a subscription</p>
+        </div>
+        <div class="subscription-plans">
+            <div class="subscription-plan">
+                <h3 class="plan-name">Normal</h3>
+                <div class="plan-price">$9</div>
+                <div class="plan-period">per month</div>
+                <ul class="plan-features">
+                    <li class="plan-feature">✓ Feature 1</li>
+                    <li class="plan-feature">✓ Feature 2</li>
+                    <li class="plan-feature">✓ Feature 3</li>
+                </ul>
+                <button class="plan-button" id="selectNormalBtn">Select Normal</button>
+            </div>
+            <div class="subscription-plan">
+                <h3 class="plan-name">Pro</h3>
+                <div class="plan-price">$19</div>
+                <div class="plan-period">per month</div>
+                <ul class="plan-features">
+                    <li class="plan-feature">✓ All Normal features</li>
+                    <li class="plan-feature">✓ Pro Feature 1</li>
+                    <li class="plan-feature">✓ Pro Feature 2</li>
+                    <li class="plan-feature">✓ Pro Feature 3</li>
+                </ul>
+                <button class="plan-button">Coming Soon</button>
+            </div>
+            <div class="subscription-plan">
+                <h3 class="plan-name">Premium</h3>
+                <div class="plan-price">$29</div>
+                <div class="plan-period">per month</div>
+                <ul class="plan-features">
+                    <li class="plan-feature">✓ All Pro features</li>
+                    <li class="plan-feature">✓ Premium Feature 1</li>
+                    <li class="plan-feature">✓ Premium Feature 2</li>
+                    <li class="plan-feature">✓ Premium Feature 3</li>
+                    <li class="plan-feature">✓ Priority Support</li>
+                </ul>
+                <button class="plan-button">Coming Soon</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="payment-options-modal" id="paymentOptionsModal">
+        <div class="payment-options-content">
+            <button class="payment-options-close" id="paymentOptionsClose">×</button>
+            <h2 class="payment-options-title">Complete Subscription</h2>
+            <div id="paypal-button-container"></div>
+        </div>
+    </div>
+
+    <div class="prompt-modal" id="promptModal">
+        <div class="prompt-modal-content">
+            <h3 class="prompt-modal-title" id="promptTitle">Enter Information</h3>
+            <input type="password" class="prompt-input" id="promptInput1" placeholder="Current Password">
+            <input type="text" class="prompt-input" id="promptInput2" placeholder="New Value">
+            <div class="prompt-actions">
+                <button class="prompt-btn prompt-btn-cancel" id="promptCancel">Cancel</button>
+                <button class="prompt-btn prompt-btn-confirm" id="promptConfirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-modal" id="verifyCodeModal">
+        <button id="verifyCodeBackBtn" style="position: absolute; top: 20px; right: 20px; background: none; border: none; cursor: pointer; z-index: 10001; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;">
+            <img src="./icons/back_icon.webp" alt="Back" style="width: 24px; height: 24px;">
+        </button>
+        <div class="auth-modal-content">
+            <h2 class="auth-modal-title" id="verifyCodeTitle">Verify Your Email</h2>
+            <div style="color: #a1a1aa; font-size: 16px; text-align: center; margin-bottom: 30px;">
+                Enter the code we sent to your email
+            </div>
+            <div class="auth-inputs">
+                <input type="text" class="auth-input" id="verifyCodeInput" placeholder="Enter code">
+            </div>
+            <button class="auth-submit" id="verifyCodeSubmit">Verify</button>
+            <div id="verifyCodeError" style="color: #ef4444; font-size: 14px; text-align: center; margin-top: 20px; display: none;"></div>
+        </div>
+    </div>
+
+    <script src="https://www.paypal.com/sdk/js?client-id=AQZNGRwt_Gc8lZ7lBYfEgoHB3ogrbTayzcmOJcA5cK5LTLNxM1y9UbDBn-PfF30PTgJ_cqh2tOvwDgAi&vault=true&intent=subscription"></script>
+    <script>
+        // ============================================
+        // Global Variables
+        // ============================================
+        
+        // Camera and card scanning
+        let frontImage = null;
+        let scannedCards = [];
+        
+        // Browse functionality
+        let allBrowseCards = [];
+        let offset = 0;
+        const LIMIT = 24;
+        let isLoading = false;
+        
+        // Authentication
+        let currentUser = null;
+        let authMode = 'login';
+        let hasSubscription = false;
+        let subscriptionTier = 0;
+        let pendingAuthEmail = null;
+        
+        // Filters
+        let filterSeries = '';
+        let filterMinPrice = '';
+        let filterMaxPrice = '';
+        
+        // Price slider state
+        let minPrice = 0;
+        let maxPrice = 10000;
+        let isDragging = false;
+        let activeHandle = null;
+
+        // ============================================
+        // Function Definitions
+        // ============================================
+        
+        function updateScanned() {
+            const el = document.getElementById('scannedCards');
+            if (scannedCards.length === 0) {
+                el.innerHTML = '<div style="color: #71717a; text-align: center; padding: 20px;">No cards scanned yet</div>';
+                return;
+            }
+            
+            el.innerHTML = '';
+            scannedCards.forEach((card, idx) => {
+                const div = document.createElement('div');
+                div.className = 'card-item';
+                const price = card.estimated_price || card.estimatedPrice || 0;
+                div.innerHTML = `
+                    <div class="card-name">${card.name || 'Unknown'}</div>
+                    <div class="card-series">${card.series || 'Unknown Series'}</div>
+                    <div class="card-price">${price ? price.toLocaleString() : '0'}</div>
+                `;
+                div.onclick = () => showScannedDetail(idx);
+                el.appendChild(div);
+            });
+        }
+
+        document.getElementById('captureBtn').onclick = () => {
+            const video = document.getElementById('video');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            canvas.toBlob(blob => {
+                if (!frontImage) {
+                    frontImage = blob;
+                    const status = document.getElementById('scanStatus');
+                    status.textContent = 'Turn the card around';
+                    status.style.display = 'block';
+                } else {
+                    document.getElementById('scanStatus').textContent = 'Card added to queue';
+                    document.getElementById('scanStatus').style.display = 'block';
+                    
+                    setTimeout(() => {
+                        document.getElementById('scanStatus').style.display = 'none';
+                    }, 2000);
+                    
+                    // Add processing placeholder
+                    const processingIndex = scannedCards.length;
+                    scannedCards.push({
+                        processing: true,
+                        name: 'Processing...',
+                        series: 'Analyzing card',
+                        estimated_price: null
+                    });
+                    updateScanned();
+                    
+                    const formData = new FormData();
+                    formData.append('image_1', new File([frontImage], 'front.png', { type: 'image/png' }));
+                    formData.append('image_2', new File([blob], 'back.png', { type: 'image/png' }));
+                    
+                    frontImage = null;
+                    
+                    fetch('http://127.0.0.1:8000/analyze', { 
+                        method: 'PUT',
+                        body: formData
+                    })
+                        .then(response => response.text())
+                        .then(result => {
+                            const trimmedResult = result.trim();
+                            console.log('API result:', trimmedResult, 'Is failed:', trimmedResult === '0');
+                            
+                            if (trimmedResult === '0') {
+                                scannedCards[processingIndex] = {
+                                    failed: true,
+                                    name: 'Analysis Failed',
+                                    series: 'Unable to identify card',
+                                    estimated_price: null
+                                };
+                                console.log('Set card as failed at index', processingIndex, ':', JSON.stringify(scannedCards[processingIndex]));
+                            } else {
+                                try {
+                                    const card = JSON.parse(trimmedResult);
+                                    scannedCards[processingIndex] = card;
+                                } catch (err) {
+                                    scannedCards[processingIndex] = {
+                                        failed: true,
+                                        name: 'Parse Error',
+                                        series: 'Invalid response format',
+                                        estimated_price: null
+                                    };
+                                }
+                            }
+                            console.log('Calling updateScanned...');
+                            console.log('scannedCards before update:', JSON.stringify(scannedCards));
+                            updateScanned();
+                        })
+                        .catch(err => {
+                            console.error('Error analyzing card:', err);
+                            // Mark as failed on error
+                            scannedCards[processingIndex] = {
+                                failed: true,
+                                name: 'Analysis Failed',
+                                series: 'Connection error',
+                                estimated_price: null
+                            };
+                            updateScanned();
+                        });
+                }
+            });
+        }
+
+        function showScannedDetail(idx) {
+            const card = scannedCards[idx];
+            if (!card) return;
+            showModal(card);
+        }
+
+        async function loadCards() {
+            if (isLoading) return;
+            isLoading = true;
+            
+            document.getElementById('loading').style.display = 'block';
+            const searchValue = document.getElementById('searchBarOverlay').value || '';
+            const params = new URLSearchParams({
+                search: searchValue,
+                offset: offset,
+                limit: LIMIT
+            });
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/browse?${params}`, {
+                    method: "GET",
+                    credentials: "include"
+                });
+                const cards = await response.json();
+                const grid = document.getElementById('cardsGrid');
+                
+                cards.forEach((card) => {
+                    allBrowseCards.push(card);
+                    const cardIndex = allBrowseCards.length - 1;
+                    
+                    const el = document.createElement('div');
+                    el.className = 'card-item';
+                    const imageUrl = card.img1_url || card.image_1_url;
+                    if (imageUrl) {
+                        el.classList.add('has-image');
+                        el.style.backgroundImage = `url(http://127.0.0.1:8000${imageUrl})`;
+                    }
+                    const price = card.estimated_price || card.estimatedPrice || 0;
+                    el.innerHTML = `
+                        <div class="card-name">${card.name}</div>
+                        <div class="card-series">${card.series}</div>
+                        <div class="card-price">${price ? price.toLocaleString() : '0'}</div>
+                    `;
+                    el.onclick = () => showCardDetail(cardIndex);
+                    grid.appendChild(el);
+                });
+                
+                offset += cards.length;
+                
+                if (cards.length === LIMIT) {
+                    const browseTab = document.getElementById('browseTab');
+                    if (browseTab.scrollHeight <= browseTab.clientHeight) {
+                        setTimeout(() => loadCards(), 100);
+                    }
+                }
+            } catch (err) {
+                console.error('Error:', err);
+            } finally {
+                isLoading = false;
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function showCardDetail(cardIndex) {
+            const card = allBrowseCards[cardIndex];
+            if (!card) return;
+            showModal(card);
+        }
+
+        function showModal(card) {
+            const modal = document.getElementById('cardModal');
+            const body = document.getElementById('modalBody');
+            
+            const price = card.estimated_price || card.estimatedPrice || 0;
+            const img1 = card.img1_url || card.image_1_url;
+            const img2 = card.img2_url || card.image_2_url;
+            
+            body.innerHTML = `
+                <div class="modal-images">
+                    ${img1 ? `<img src="http://127.0.0.1:8000${img1}" class="modal-image" alt="Front">` : '<div class="modal-image" style="background: #272833;"></div>'}
+                    ${img2 ? `<img src="http://127.0.0.1:8000${img2}" class="modal-image" alt="Back">` : '<div class="modal-image" style="background: #272833;"></div>'}
+                </div>
+                <div class="modal-info">
+                    <h2 class="modal-title">${card.name || 'Unknown Card'}</h2>
+                    <div class="modal-detail">
+                        <span class="modal-label">Series</span>
+                        <span class="modal-value">${card.series || 'Unknown'}</span>
+                    </div>
+                    ${card.foil_effect ? `
+                    <div class="modal-detail">
+                        <span class="modal-label">Foil Effect</span>
+                        <span class="modal-value">${card.foil_effect}</span>
+                    </div>` : ''}
+                    ${card.parallel !== undefined && card.parallel !== null ? `
+                    <div class="modal-detail">
+                        <span class="modal-label">Parallel</span>
+                        <span class="modal-value">${card.parallel}</span>
+                    </div>` : ''}
+                    ${card.score !== undefined && card.score !== null ? `
+                    <div class="modal-detail">
+                        <span class="modal-label">Score</span>
+                        <span class="modal-value">${card.score}</span>
+                    </div>` : ''}
+                    <div class="modal-price-big">${price ? price.toLocaleString() : '0'}</div>
+                    ${card.description ? `<div class="modal-description">${card.description}</div>` : ''}
+                </div>
+            `;
+            
+            modal.classList.add('show');
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active');
+            document.getElementById('nav' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+
+            const filterBtn = document.getElementById('filterBtn');
+            const searchIconBtn = document.getElementById('searchIconBtn');
+            if (tab === 'browse') {
+                filterBtn.style.display = 'block';
+                searchIconBtn.style.display = 'block';
+            } else {
+                filterBtn.style.display = 'none';
+                searchIconBtn.style.display = 'none';
+            }
+
+            const sideBtn = document.getElementById('sideToggle');
+            if (tab === 'capture') {
+                sideBtn.style.display = 'block';
+            } else {
+                sideBtn.style.display = 'none';
+                document.getElementById('sideMenu').classList.remove('open');
+                document.getElementById('sideOverlay').classList.remove('show');
+                sideBtn.classList.remove('open');
+                sideBtn.textContent = '◀';
+            }
+
+            if (tab === 'browse' && offset === 0) {
+                loadCards();
+            }
+        }
+
+        function updateAuthUI() {
+            const profilePic = document.getElementById('profilePic');
+            const profileEmail = document.getElementById('profileEmail');
+            const accountEmailDisplay = document.getElementById('accountEmailDisplay');
+            const authLogo = document.getElementById('authLogo');
+
+            if (currentUser) {
+                profilePic.style.display = 'flex';
+                profilePic.textContent = currentUser.charAt(0).toUpperCase();
+                profileEmail.textContent = currentUser;
+                if (accountEmailDisplay) {
+                    accountEmailDisplay.textContent = currentUser;
+                }
+                document.getElementById('authModal').classList.remove('show');
+                if (authLogo) authLogo.style.display = 'none';
+            } else {
+                profilePic.style.display = 'none';
+                document.getElementById('authModal').classList.add('show');
+                if (authLogo) authLogo.style.display = 'block';
+            }
+            
+            const planText = document.getElementById('subscriptionPlanText');
+            if (planText) {
+                const plans = {
+                    0: 'Free (No Subscription)',
+                    1: 'Normal Plan',
+                    2: 'Pro Plan', 
+                    3: 'Premium Plan'
+                };
+                planText.textContent = plans[subscriptionTier] || 'Free (No Subscription)';
+            }
+        }
+
+        function updateSlider() {
+            const slider = document.getElementById('priceSlider');
+            const range = document.getElementById('priceRange');
+            const minHandle = document.getElementById('minHandle');
+            const maxHandle = document.getElementById('maxHandle');
+            
+            const minPercent = (minPrice / 10000) * 100;
+            const maxPercent = (maxPrice / 10000) * 100;
+            
+            range.style.left = minPercent + '%';
+            range.style.right = (100 - maxPercent) + '%';
+            
+            minHandle.style.left = minPercent + '%';
+            maxHandle.style.left = maxPercent + '%';
+            
+            document.getElementById('filterMinPrice').value = minPrice;
+            document.getElementById('filterMaxPrice').value = maxPrice;
+        }
+
+        // ============================================
+        // Event Handlers & Initialization
+        // ============================================
+        
+        // Check for saved session
+        const savedUser = localStorage.getItem('packstorm_user');
+        const savedSubscription = localStorage.getItem('packstorm_subscription');
+        if (savedUser) {
+            currentUser = savedUser;
+            subscriptionTier = parseInt(savedSubscription) || 0;
+            hasSubscription = subscriptionTier > 0;
+        }
+        updateAuthUI();
+
+        // Camera initialization
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(stream => {
+                document.getElementById('video').srcObject = stream;
+            })
+            .catch(() => console.log('Camera not available'));
+
+        // Capture button
+        document.getElementById('captureBtn').onclick = async () => {
+            // DEBUG MODE: Using test images from local folder
+            const DEBUG_MODE = true;
+            
+            if (DEBUG_MODE) {
+                document.getElementById('scanStatus').textContent = 'Card added to queue';
+                document.getElementById('scanStatus').style.display = 'block';
+                
+                setTimeout(() => {
+                    document.getElementById('scanStatus').style.display = 'none';
+                }, 2000);
+                
+                const processingIndex = scannedCards.length;
+                scannedCards.push({
+                    processing: true,
+                    name: 'Processing...',
+                    series: 'Analyzing card',
+                    estimated_price: null
+                });
+                updateScanned();
+                
+                try {
+                    const img1Response = await fetch('./image1.png');
+                    const img1Blob = await img1Response.blob();
+                    const img2Response = await fetch('./image2.png');
+                    const img2Blob = await img2Response.blob();
+                    
+                    const formData = new FormData();
+                    formData.append('image_1', new File([img1Blob], 'front.png', { type: 'image/png' }));
+                    formData.append('image_2', new File([img2Blob], 'back.png', { type: 'image/png' }));
+                    
+                    fetch('http://127.0.0.1:8000/analyze', { 
+                        method: 'PUT',
+						credentials: "include",
+                        body: formData
+                    })
+                        .then(response => response.text())
+                        .then(result => {
+                            const trimmedResult = result.trim();
+                            console.log('API result:', trimmedResult, 'Is failed:', trimmedResult === '0');
+                            
+                            if (trimmedResult === '0') {
+                                scannedCards[processingIndex] = {
+                                    failed: true,
+                                    name: 'Analysis Failed',
+                                    series: 'Unable to identify card',
+                                    estimated_price: null
+                                };
+                            } else {
+                                try {
+                                    const card = JSON.parse(trimmedResult);
+                                    scannedCards[processingIndex] = card;
+                                } catch (err) {
+                                    scannedCards[processingIndex] = {
+                                        failed: true,
+                                        name: 'Parse Error',
+                                        series: 'Invalid response format',
+                                        estimated_price: null
+                                    };
+                                }
+                            }
+                            updateScanned();
+                        })
+                        .catch(err => {
+                            console.error('Error analyzing card:', err);
+                            scannedCards[processingIndex] = {
+                                failed: true,
+                                name: 'Analysis Failed',
+                                series: 'Connection error',
+                                estimated_price: null
+                            };
+                            updateScanned();
+                        });
+                } catch (err) {
+                    console.error('Error loading test images:', err);
+                    scannedCards[processingIndex] = {
+                        failed: true,
+                        name: 'Debug Error',
+                        series: 'Could not load test images',
+                        estimated_price: null
+                    };
+                    updateScanned();
+                }
+                
+                return;
+            }
+            
+            // ORIGINAL CODE: Camera capture
+            const video = document.getElementById('video');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            canvas.toBlob(blob => {
+                if (!frontImage) {
+                    frontImage = blob;
+                    const status = document.getElementById('scanStatus');
+                    status.textContent = 'Turn the card around';
+                    status.style.display = 'block';
+                } else {
+                    document.getElementById('scanStatus').textContent = 'Card added to queue';
+                    document.getElementById('scanStatus').style.display = 'block';
+                    
+                    setTimeout(() => {
+                        document.getElementById('scanStatus').style.display = 'none';
+                    }, 2000);
+                    
+                    const processingIndex = scannedCards.length;
+                    scannedCards.push({
+                        processing: true,
+                        name: 'Processing...',
+                        series: 'Analyzing card',
+                        estimated_price: null
+                    });
+                    updateScanned();
+                    
+                    const formData = new FormData();
+                    formData.append('image_1', frontImage, 'front.jpg');
+                    formData.append('image_2', blob, 'back.jpg');
+                    
+                    frontImage = null;
+                    
+                    fetch('http://127.0.0.1:8000/analyze', { 
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(response => response.text())
+                        .then(result => {
+                            const trimmedResult = result.trim();
+                            console.log('API result:', trimmedResult, 'Is failed:', trimmedResult === '0');
+                            
+                            if (trimmedResult === '0') {
+                                scannedCards[processingIndex] = {
+                                    failed: true,
+                                    name: 'Analysis Failed',
+                                    series: 'Unable to identify card',
+                                    estimated_price: null
+                                };
+                            } else {
+                                try {
+                                    const card = JSON.parse(trimmedResult);
+                                    scannedCards[processingIndex] = card;
+                                } catch (err) {
+                                    scannedCards[processingIndex] = {
+                                        failed: true,
+                                        name: 'Parse Error',
+                                        series: 'Invalid response format',
+                                        estimated_price: null
+                                    };
+                                }
+                            }
+                            updateScanned();
+                        })
+                        .catch(err => {
+                            console.error('Error analyzing card:', err);
+                            scannedCards[processingIndex] = {
+                                failed: true,
+                                name: 'Analysis Failed',
+                                series: 'Connection error',
+                                estimated_price: null
+                            };
+                            updateScanned();
+                        });
+                }
+            });
+        };
+
+        // Side menu toggle
+        document.getElementById('sideToggle').onclick = () => {
+            const menu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('sideOverlay');
+            const btn = document.getElementById('sideToggle');
+            const header = document.getElementById('sideMenuHeader');
+            
+            menu.classList.toggle('open');
+            overlay.classList.toggle('show');
+            btn.classList.toggle('open');
+            header.classList.toggle('open');
+            btn.textContent = btn.classList.contains('open') ? '✕' : '◀';
+        };
+
+        // Side overlay click
+        document.getElementById('sideOverlay').onclick = () => {
+            document.getElementById('sideToggle').click();
+        };
+
+        // Search icon button for small screens
+        document.getElementById('searchIconBtn').onclick = () => {
+            document.getElementById('searchOverlay').style.display = 'flex';
+            document.getElementById('logo').style.display = 'none';
+            document.getElementById('searchIconBtn').style.display = 'none';
+            document.getElementById('filterBtn').style.display = 'none';
+            document.getElementById('profilePic').style.display = 'none';
+            document.getElementById('searchBarOverlay').focus();
+        };
+
+        // Close search overlay
+        document.getElementById('closeSearchOverlay').onclick = () => {
+            document.getElementById('searchOverlay').style.display = 'none';
+            document.getElementById('logo').style.display = 'block';
+            document.getElementById('searchIconBtn').style.display = 'block';
+            document.getElementById('filterBtn').style.display = 'block';
+            document.getElementById('profilePic').style.display = 'flex';
+        };
+
+        // Search overlay input
+        document.getElementById('searchBarOverlay').addEventListener('change', () => {
+            const value = document.getElementById('searchBarOverlay').value;
+            document.getElementById('searchBar').value = value;
+            document.getElementById('searchBar').dispatchEvent(new Event('change'));
+            document.getElementById('searchOverlay').style.display = 'none';
+            offset = 0;
+            allBrowseCards = [];
+            document.getElementById('cardsGrid').innerHTML = '';
+            loadCards();
+        });
+
+        // Search bar change
+        const searchBar = document.getElementById('searchBar');
+        if (searchBar) {
+            searchBar.onchange = () => {
+                offset = 0;
+                allBrowseCards = [];
+                document.getElementById('cardsGrid').innerHTML = '';
+                loadCards();
+            };
+        }
+
+        // Browse tab scroll
+        document.getElementById('browseTab').addEventListener('scroll', (e) => {
+            const el = e.target;
+            if (el.scrollTop + el.clientHeight >= el.scrollHeight - 500) {
+                loadCards();
+            }
+        });
+        document.getElementById('browseTab').addEventListener('scroll', (e) => {
+            const el = e.target;
+            if (el.scrollTop + el.clientHeight >= el.scrollHeight - 500) {
+                loadCards();
+            }
+        });
+
+        // Modal close button
+        document.getElementById('modalClose').onclick = () => {
+            document.getElementById('cardModal').classList.remove('show');
+        };
+
+        // Modal background click
+        document.getElementById('cardModal').addEventListener('mousedown', (e) => {
+            if (e.target === document.getElementById('cardModal')) {
+                document.getElementById('cardModal').classList.remove('show');
+            }
+        });
+
+        // Tab navigation - Capture
+        document.getElementById('navCapture').onclick = () => {
+            switchTab('capture');
+        };
+        
+        // Tab navigation - Browse
+        document.getElementById('navBrowse').onclick = () => {
+            if (subscriptionTier < 1) {
+                document.getElementById('subscriptionModal').classList.add('show');
+                return;
+            }
+            switchTab('browse');
+        };
+        
+        // Tab navigation - Collection
+        document.getElementById('navCollection').onclick = () => {
+            if (subscriptionTier < 1) {
+                document.getElementById('subscriptionModal').classList.add('show');
+                return;
+            }
+            switchTab('collection');
+        };
+
+        // Subscription modal close
+        document.getElementById('subscriptionClose').onclick = () => {
+            document.getElementById('subscriptionModal').classList.remove('show');
+        };
+
+        // Select Normal subscription button
+        document.getElementById('selectNormalBtn').onclick = () => {
+            document.getElementById('paymentOptionsModal').classList.add('show');
+            
+            if (window.paypal) {
+                document.getElementById('paypal-button-container').innerHTML = '';
+                paypal.Buttons({
+                    style: {
+                        layout: 'vertical',
+                        color: 'gold'
+                    },
+                    createSubscription: function(data, actions) {
+                        return actions.subscription.create({
+                            plan_id: 'P-18R598326J033122JNES35JI'
+                        });
+                    },
+                    onApprove: async function(data, actions) {
+                        try {
+                            const response = await fetch(`http://127.0.0.1:8000/subscription`, {
+                                method: 'PUT',
+                                credentials: 'include',
+								headers: { "Content-Type": "application/json" },
+    							body: data.subscriptionID
+                            });
+                            
+                            const result = await response.text();
+                            const tier = parseInt(result);
+                            
+                            if (tier >= 1 && tier <= 3) {
+                                subscriptionTier = tier;
+                                hasSubscription = true;
+                                localStorage.setItem('packstorm_subscription', result);
+                                alert('Subscription activated successfully!');
+                                document.getElementById('paymentOptionsModal').classList.remove('show');
+                                document.getElementById('subscriptionModal').classList.remove('show');
+                                updateAuthUI();
+                            } else {
+                                alert('Subscription activation failed. Please try again.');
+                            }
+                        } catch (err) {
+                            console.error('Subscription error:', err);
+                            alert('Connection error. Please try again.');
+                        }
+                    },
+                    onError: function(err) {
+                        console.error('PayPal error:', err);
+                        alert('Payment error. Please try again.');
+                    }
+                }).render('#paypal-button-container');
+            }
+        };
+
+        // Payment options modal close
+        document.getElementById('paymentOptionsClose').onclick = () => {
+            document.getElementById('paymentOptionsModal').classList.remove('show');
+        };
+
+        // Prompt modal helper
+        function showPrompt(title, placeholder1, placeholder2, type1, type2) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('promptModal');
+                const titleEl = document.getElementById('promptTitle');
+                const input1 = document.getElementById('promptInput1');
+                const input2 = document.getElementById('promptInput2');
+                const confirmBtn = document.getElementById('promptConfirm');
+                const cancelBtn = document.getElementById('promptCancel');
+                
+                titleEl.textContent = title;
+                input1.placeholder = placeholder1;
+                input2.placeholder = placeholder2;
+                input1.type = type1;
+                input2.type = type2;
+                input1.value = '';
+                input2.value = '';
+                
+                modal.classList.add('show');
+                input1.focus();
+                
+                const cleanup = () => {
+                    modal.classList.remove('show');
+                    confirmBtn.onclick = null;
+                    cancelBtn.onclick = null;
+                };
+                
+                confirmBtn.onclick = () => {
+                    const val1 = input1.value.trim();
+                    const val2 = input2.value.trim();
+                    cleanup();
+                    resolve(val1 && val2 ? { value1: val1, value2: val2 } : null);
+                };
+                
+                cancelBtn.onclick = () => {
+                    cleanup();
+                    resolve(null);
+                };
+            });
+        }
+
+        // Change Password
+        document.getElementById('changePasswordBtn').onclick = async () => {
+            const result = await showPrompt(
+                'Change Password',
+                'Current Password',
+                'New Password',
+                'password',
+                'password'
+            );
+            
+            if (!result) return;
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8000/change_password', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: `${result.value1},${result.value2}`,
+                    credentials: 'include'
+                });
+                
+                if (response.status === 200) {
+                    alert('Password changed successfully!');
+                } else {
+                    alert('Failed to change password. Please check your current password.');
+                }
+            } catch (err) {
+                console.error('Change password error:', err);
+                alert('Connection error. Please try again.');
+            }
+        };
+
+        // Change Email
+        document.getElementById('changeEmailBtn').onclick = async () => {
+            const result = await showPrompt(
+                'Change Email',
+                'Current Password',
+                'New Email',
+                'password',
+                'email'
+            );
+            
+            if (!result) return;
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8000/change_email', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: `${result.value1},${result.value2}`,
+                    credentials: 'include'
+                });
+                
+                if (response.status === 200) {
+                    currentUser = result.value2;
+                    localStorage.setItem('packstorm_user', result.value2);
+                    updateAuthUI();
+                    alert('Email changed successfully!');
+                } else {
+                    alert('Failed to change email. Please check your password.');
+                }
+            } catch (err) {
+                console.error('Change email error:', err);
+                alert('Connection error. Please try again.');
+            }
+        };
+
+        // Auth modal background click
+        document.getElementById('authModal').addEventListener('mousedown', (e) => {
+            if (e.target === document.getElementById('authModal')) {
+                // Do nothing - login is required
+            }
+        });
+
+        // Terms checkbox
+        let termsAccepted = false;
+        const termsCheckbox = document.getElementById('termsCheckbox');
+        termsCheckbox.addEventListener('click', () => {
+            termsAccepted = !termsAccepted;
+            const submitBtn = document.getElementById('authSubmit');
+            if (termsAccepted) {
+                termsCheckbox.style.background = 'white';
+                termsCheckbox.style.opacity = '1';
+            } else {
+                termsCheckbox.style.background = 'rgba(228, 228, 231, 0.05)';
+                termsCheckbox.style.opacity = '0.5';
+            }
+            checkFormValidity();
+        });
+
+        // Checkbox hover effect
+        termsCheckbox.addEventListener('mouseenter', () => {
+            if (termsAccepted) {
+                termsCheckbox.style.opacity = '0.75';
+            } else {
+                termsCheckbox.style.opacity = '0.75';
+            }
+        });
+
+        termsCheckbox.addEventListener('mouseleave', () => {
+            if (termsAccepted) {
+                termsCheckbox.style.opacity = '1';
+            } else {
+                termsCheckbox.style.opacity = '0.5';
+            }
+        });
+
+        // Auth submit button
+        document.getElementById('authSubmit').onclick = async () => {
+            const email = authMode === 'login' ? document.getElementById('authEmailLogin').value : document.getElementById('authEmailSignup').value;
+            const password = authMode === 'login' ? document.getElementById('authPasswordLogin').value : document.getElementById('authPasswordSignup').value;
+
+            if (!email || !password) {
+                showNotification('Please fill in all fields', 'warning');
+                return;
+            }
+
+            if (authMode === 'signup' && !termsAccepted) {
+                showNotification('Please accept the Terms of Service', 'warning');
+                return;
+            }
+
+            const submitBtn = document.getElementById('authSubmit');
+            submitBtn.disabled = true;
+
+            const endpoint = authMode === 'login' ? '/login' : '/signup';
+            const data = `${email},${password}`;
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000${endpoint}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: data,
+                    credentials: "include"
+                });
+
+                if (response.status === 200) {
+                    pendingAuthEmail = email;
+                    document.getElementById('authModal').classList.remove('show');
+                    document.getElementById('verifyCodeModal').classList.add('show');
+                    document.getElementById('verifyCodeInput').value = '';
+                    document.getElementById('verifyCodeError').style.display = 'none';
+                } else if (response.status === 410) {
+                    alert('Login failed. Please check your credentials.');
+                } else {
+                    showNotification('Request failed. Please try again.', 'error');
+                }
+            } catch (err) {
+                console.error('Auth error:', err);
+                showNotification('Connection error', 'error');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        };
+
+        // Profile picture click
+        document.getElementById('profilePic').onclick = () => {
+            document.getElementById('profileDropdown').classList.toggle('show');
+        };
+
+        // Logout button
+        document.getElementById('logoutBtn').onclick = async () => {
+            try {
+                await fetch('http://127.0.0.1:8000/logout', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+            } catch (err) {
+                console.error('Logout error:', err);
+            }
+            
+            currentUser = null;
+            hasSubscription = false;
+            subscriptionTier = 0;
+            localStorage.removeItem('packstorm_user');
+            localStorage.removeItem('packstorm_subscription');
+            document.getElementById('profileDropdown').classList.remove('show');
+            updateAuthUI();
+            switchTab('capture');
+        };
+
+        // Settings button
+        document.getElementById('settingsBtn').onclick = () => {
+            document.getElementById('profileDropdown').classList.remove('show');
+            document.getElementById('settingsModal').classList.add('show');
+        };
+
+        // Settings modal close
+        document.getElementById('settingsClose').onclick = () => {
+            document.getElementById('settingsModal').classList.remove('show');
+        };
+
+        // Settings navigation - Account
+        document.getElementById('navAccount').onclick = () => {
+            document.querySelectorAll('.settings-nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('navAccount').classList.add('active');
+            document.getElementById('accountSection').classList.add('active');
+        };
+
+        // Settings navigation - Subscription
+        document.getElementById('navSubscription').onclick = () => {
+            document.querySelectorAll('.settings-nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('navSubscription').classList.add('active');
+            document.getElementById('subscriptionSection').classList.add('active');
+        };
+
+        // View subscriptions button
+        document.getElementById('viewSubscriptionsBtn').onclick = () => {
+            document.getElementById('settingsModal').classList.remove('show');
+            document.getElementById('subscriptionModal').classList.add('show');
+        };
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('profileDropdown');
+            const profilePic = document.getElementById('profilePic');
+            if (!dropdown.contains(e.target) && !profilePic.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Filter button
+        document.getElementById('filterBtn').onclick = () => {
+            document.getElementById('filterModal').classList.add('show');
+            updateSlider();
+        };
+
+        // Filter modal close button
+        document.getElementById('filterClose').onclick = () => {
+            document.getElementById('filterModal').classList.remove('show');
+        };
+
+        // Filter modal background click
+        document.getElementById('filterModal').addEventListener('mousedown', (e) => {
+            if (e.target === document.getElementById('filterModal')) {
+                document.getElementById('filterModal').classList.remove('show');
+            }
+        });
+
+        // Price slider - Min handle mousedown
+        document.getElementById('minHandle').addEventListener('mousedown', (e) => {
+            isDragging = true;
+            activeHandle = 'min';
+            e.preventDefault();
+        });
+
+        // Price slider - Max handle mousedown
+        document.getElementById('maxHandle').addEventListener('mousedown', (e) => {
+            isDragging = true;
+            activeHandle = 'max';
+            e.preventDefault();
+        });
+
+        // Price slider - Mouse move
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            
+            const slider = document.getElementById('priceSlider');
+            const rect = slider.getBoundingClientRect();
+            const percent = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+            const value = Math.round((percent / 100) * 10000);
+            
+            if (activeHandle === 'min') {
+                minPrice = Math.min(value, maxPrice - 100);
+            } else {
+                maxPrice = Math.max(value, minPrice + 100);
+            }
+            
+            updateSlider();
+        });
+
+        // Price slider - Mouse up
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            activeHandle = null;
+        });
+
+        // Filter apply button
+        document.getElementById('filterApply').onclick = () => {
+            filterSeries = document.getElementById('filterSeries').value;
+            filterMinPrice = minPrice > 0 ? minPrice : '';
+            filterMaxPrice = maxPrice < 10000 ? maxPrice : '';
+            
+            offset = 0;
+            allBrowseCards = [];
+            document.getElementById('cardsGrid').innerHTML = '';
+            document.getElementById('filterModal').classList.remove('show');
+            loadCards();
+        };
+
+        // Filter clear button
+        document.getElementById('filterClear').onclick = () => {
+            document.getElementById('filterSeries').value = '';
+            minPrice = 0;
+            maxPrice = 10000;
+            filterSeries = '';
+            filterMinPrice = '';
+            filterMaxPrice = '';
+            updateSlider();
+            
+            offset = 0;
+            allBrowseCards = [];
+            document.getElementById('cardsGrid').innerHTML = '';
+            document.getElementById('filterModal').classList.remove('show');
+            loadCards();
+        };
+
+        // Initialize default tab
+        switchTab('capture');
+
+        // Notification helper
+        function showNotification(message, type = 'warning') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            container.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+        if (document.getElementById('verifyCodeClose')) {
+            document.getElementById('verifyCodeClose').onclick = () => {
+                document.getElementById('verifyCodeModal').classList.remove('show');
+                pendingAuthEmail = null;
+            };
+        }
+
+        // Verify code back button (icon button)
+        document.getElementById('verifyCodeBackBtn').onclick = () => {
+            document.getElementById('verifyCodeModal').classList.remove('show');
+            document.getElementById('authModal').classList.add('show');
+            pendingAuthEmail = null;
+        };
+
+        // Auth toggle between login and signup
+        const authToggleBtn = document.getElementById('authToggle');
+        authToggleBtn.onclick = (e) => {
+            e.preventDefault();
+            const termsDiv = document.getElementById('termsCheckbox').parentElement;
+            const signupInputs = document.getElementById('signupInputs');
+            const loginInputs = document.querySelector('.auth-inputs:not(#signupInputs)');
+            
+            if (authMode === 'login') {
+                authMode = 'signup';
+                document.getElementById('authTitle').textContent = 'Sign Up';
+                document.getElementById('authSubmit').textContent = 'Sign Up';
+                document.getElementById('authToggleText').textContent = 'Already have an account? ';
+                authToggleBtn.textContent = 'Login';
+                loginInputs.style.display = 'none';
+                signupInputs.style.display = 'block';
+                termsDiv.style.display = 'flex';
+            } else {
+                authMode = 'login';
+                document.getElementById('authTitle').textContent = 'Login';
+                document.getElementById('authSubmit').textContent = 'Login';
+                document.getElementById('authToggleText').textContent = "Don't have an account? ";
+                authToggleBtn.textContent = 'Sign Up';
+                loginInputs.style.display = 'block';
+                signupInputs.style.display = 'none';
+                termsDiv.style.display = 'none';
+            }
+            document.getElementById('authSubmit').disabled = true;
+            checkFormValidity();
+        };
+
+        // Email validation
+        function validateEmail(email) {
+            if (!email || email.length > 254) return false;
+            if ((email.match(/@/g) || []).length !== 1) return false;
+            
+            const [local, domain] = email.split('@');
+            
+            // Validate local part
+            if (!local || local.length < 1 || local.length > 64) return false;
+            if (local.startsWith('.') || local.endsWith('.')) return false;
+            if (local.includes('..')) return false;
+            if (local.includes(' ')) return false;
+            if (local.includes('"')) return false;
+            
+            const localAllowed = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+$/;
+            if (!localAllowed.test(local)) return false;
+            
+            // Validate domain part
+            if (!domain || domain.length < 1 || domain.length > 253) return false;
+            if (domain.includes(' ')) return false;
+            if (domain.includes('..')) return false;
+            
+            const labels = domain.split('.');
+            if (labels.length < 2) return false;
+            
+            // Validate TLD (last label)
+            const tld = labels[labels.length - 1];
+            if (tld.length < 2 || tld.length > 63) return false;
+            if (!/^[a-zA-Z]+$/.test(tld)) return false;
+            
+            // Validate other domain labels
+            for (let i = 0; i < labels.length - 1; i++) {
+                const label = labels[i];
+                if (label.length < 1 || label.length > 63) return false;
+                if (label.startsWith('-') || label.endsWith('-')) return false;
+                if (!/^[a-zA-Z0-9-]+$/.test(label)) return false;
+            }
+            
+            return true;
+        }
+
+        // Password validation
+        function validatePassword(password) {
+            return password.length >= 5;
+        }
+
+        // Check form validity
+        function checkFormValidity() {
+            const submitBtn = document.getElementById('authSubmit');
+            
+            if (authMode === 'signup') {
+                const email = document.getElementById('authEmailSignup').value;
+                const password = document.getElementById('authPasswordSignup').value;
+                const emailValid = validateEmail(email);
+                const passwordValid = validatePassword(password);
+                submitBtn.disabled = !(emailValid && passwordValid && termsAccepted);
+            } else {
+                const email = document.getElementById('authEmailLogin').value;
+                const password = document.getElementById('authPasswordLogin').value;
+                const emailValid = validateEmail(email);
+                const passwordValid = validatePassword(password);
+                submitBtn.disabled = !(emailValid && passwordValid);
+            }
+        }
+
+        // Input change listeners
+        document.getElementById('authEmailLogin').addEventListener('input', checkFormValidity);
+        document.getElementById('authPasswordLogin').addEventListener('input', checkFormValidity);
+        document.getElementById('authEmailSignup').addEventListener('input', checkFormValidity);
+        document.getElementById('authPasswordSignup').addEventListener('input', checkFormValidity);
+
+        // Verify code submit button
+        document.getElementById('verifyCodeSubmit').onclick = async () => {
+            const code = document.getElementById('verifyCodeInput').value;
+
+            if (!code) {
+                document.getElementById('verifyCodeError').textContent = 'Please enter the code';
+                document.getElementById('verifyCodeError').style.display = 'block';
+                return;
+            }
+
+            const submitBtn = document.getElementById('verifyCodeSubmit');
+            submitBtn.disabled = true;
+            document.getElementById('verifyCodeError').style.display = 'none';
+
+            try {
+                const password = authMode === 'signup' ? document.getElementById('authPasswordSignup').value : '';
+                const body = authMode === 'signup' ? `${pendingAuthEmail},${code},${password}` : `${pendingAuthEmail},${code}`;
+                
+                const response = await fetch('http://127.0.0.1:8000/verify_code', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: body,
+                    credentials: 'include'
+                });
+
+                if (response.status === 200) {
+                    const result = await response.text();
+                    const tier = parseInt(result) || 0;
+                    
+                    currentUser = pendingAuthEmail;
+                    subscriptionTier = tier;
+                    hasSubscription = tier > 0;
+                    localStorage.setItem('packstorm_user', pendingAuthEmail);
+                    localStorage.setItem('packstorm_subscription', tier.toString());
+                    
+                    document.getElementById('verifyCodeModal').classList.remove('show');
+                    pendingAuthEmail = null;
+                    updateAuthUI();
+                } else {
+                    document.getElementById('verifyCodeError').textContent = 'Code is wrong or has expired. Codes expire after 5 minutes';
+                    document.getElementById('verifyCodeError').style.display = 'block';
+                }
+            } catch (err) {
+                console.error('Verify code error:', err);
+                document.getElementById('verifyCodeError').textContent = 'Connection error. Please try again.';
+                document.getElementById('verifyCodeError').style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+            }
+        };
+    </script>
+    </script>
+</body>
+</html>
