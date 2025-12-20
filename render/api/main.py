@@ -22,7 +22,7 @@ import base64, json, http.client, uvicorn, asyncio, secrets, dataset, io, os, ti
 # ░╚████╔╝░██╔══██║██╔══██╗██║██╔══██║██╔══██╗██║░░░░░██╔══╝░░░╚═══██╗
 # ░░╚██╔╝░░██║░░██║██║░░██║██║██║░░██║██████╦╝███████╗███████╗██████╔╝
 # ░░░╚═╝░░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝╚═╝░░╚═╝╚═════╝░╚══════╝╚══════╝╚═════╝░
-
+print("Current working directory:", os.getcwd())
 app = FastAPI()
 password_hasher = PasswordHasher()
 file_lock = asyncio.Lock()
