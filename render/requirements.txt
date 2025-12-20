@@ -4,3 +4,4 @@ gunicorn
 argon2-cffi
 Pillow
 dataset
+python-multipart
