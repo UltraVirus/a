@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import PlainTextResponse
 from argon2 import PasswordHasher
 from PIL import Image
+from pathlib import Path
 import base64, json, http.client, uvicorn, asyncio, secrets, dataset, io, os, time, asyncio, re
 
 
@@ -25,8 +26,8 @@ import base64, json, http.client, uvicorn, asyncio, secrets, dataset, io, os, ti
 app = FastAPI()
 password_hasher = PasswordHasher()
 file_lock = asyncio.Lock()
-api_key = open("C:\\Users\\xzock\\Documents\\Code\\packstorm_webapp\\api\\api_key.txt").read().strip()
-prompt = open("C:\\Users\\xzock\\Documents\\Code\\packstorm_webapp\\api\\prompt.txt").read().strip().replace("\n", "\\n")
+api_key = os.getenv("open_ai_key")
+prompt = open("render/api/prompt.txt").read().strip().replace("\n", "\\n")
 verification_codes = {} # {"12345": "email@gmail.com"}
 image_id = int(len(os.listdir("C:\\Users\\xzock\\Documents\\Code\\packstorm_webapp\\database\\images")) * 0.5)
 database_file = dataset.connect("sqlite:///database/packstorm.db")
@@ -37,7 +38,7 @@ verification_lock = asyncio.Lock()
 
 app.add_middleware(
 	CORSMiddleware,
-	allow_origins = ["http://127.0.0.1:3000", "http://localhost:3000"], # or ["*"] to allow all
+	allow_origins = ["https://a-1gdp.onrender.com"], # or ["*"] to allow all
 	allow_credentials = True,
 	allow_methods = ["*"],
 	allow_headers = ["*"]
