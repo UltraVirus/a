@@ -764,15 +764,3 @@ async def logout(request: Request, response: Response):
 	response.delete_cookie(key = "token")
 
 	return Response(status_code=200)
-
-
-
-# ██████╗░██╗░░░██╗███╗░░██╗
-# ██╔══██╗██║░░░██║████╗░██║
-# ██████╔╝██║░░░██║██╔██╗██║
-# ██╔══██╗██║░░░██║██║╚████║
-# ██║░░██║╚██████╔╝██║░╚███║
-# ╚═╝░░╚═╝░╚═════╝░╚═╝░░╚══╝
-
-if __name__ == "__main__":
-	uvicorn.run("api:app", workers = 1, access_log = False, reload = True)
