@@ -29,7 +29,7 @@ file_lock = asyncio.Lock()
 api_key = os.getenv("open_ai_key")
 prompt = open("render/api/prompt.txt").read().strip().replace("\n", "\\n")
 verification_codes = {} # {"12345": "email@gmail.com"}
-image_id = int(len(os.listdir("C:\\Users\\xzock\\Documents\\Code\\packstorm_webapp\\database\\images")) * 0.5)
+image_id = int(len(os.listdir("render/api/database/images")) * 0.5)
 database_file = dataset.connect("sqlite:///database/packstorm.db")
 accounts = database_file["accounts"]
 cards = database_file["cards"]
@@ -44,7 +44,7 @@ app.add_middleware(
 	allow_headers = ["*"]
 )
 
-app.mount("/images", StaticFiles(directory="C:\\Users\\xzock\\Documents\\Code\\packstorm_webapp\\database\\images"), name="images")
+app.mount("/images", StaticFiles(directory="render/api/database/images"), name="images")
 
 def compress(image_bytes):
 
