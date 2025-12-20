@@ -1,3 +1,5 @@
 fastapi
 uvicorn
-gunicorn
+argon2-cffi
+Pillow
+dataset
