@@ -4,7 +4,7 @@
 # ██║░░░░░██║██╔══██╗██╔══██╗██╔══██║██╔══██╗██║██╔══╝░░░╚═══██╗
 # ███████╗██║██████╦╝██║░░██║██║░░██║██║░░██║██║███████╗██████╔╝
 # ╚══════╝╚═╝╚═════╝░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚═╝╚═╝╚══════╝╚═════╝░
-
+# https://api-xbll.onrender.com
 from fastapi import FastAPI, UploadFile, File, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -13,6 +13,10 @@ from argon2 import PasswordHasher
 from PIL import Image
 from pathlib import Path
 import base64, json, http.client, uvicorn, asyncio, secrets, dataset, io, os, time, asyncio, re
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
 
 
 
@@ -27,6 +31,7 @@ app = FastAPI()
 password_hasher = PasswordHasher()
 file_lock = asyncio.Lock()
 api_key = os.getenv("open_ai_key")
+webhook_id = os.getenv("paypal_webhook_id")
 prompt = open("api/prompt.txt").read().strip().replace("\n", "\\n")
 verification_codes = {} # {"12345": "email@gmail.com"}
 image_id = int(len(os.listdir("database/images")) * 0.5)
@@ -123,10 +128,10 @@ def convert_to_png(b):
 	return o.getvalue()
 	
 def is_valid_email(email):
-    return bool(re.fullmatch(
-        r"(?!.*@.*@)(?!\.)(?!.*\.\.)[A-Za-z0-9._+\-!#$%&'*\/=?^_`{}|~]{1,64}(?<!@)(?<!\.)@"
-        r"(?:(?!-)[A-Za-z0-9\-]{1,63}(?<!-)\.)+[A-Za-z]{2,63}", email
-    )) and len(email) <= 254
+	return bool(re.fullmatch(
+		r"(?!.*@.*@)(?!\.)(?!.*\.\.)[A-Za-z0-9._+\-!#$%&'*\/=?^_`{}|~]{1,64}(?<!@)(?<!\.)@"
+		r"(?:(?!-)[A-Za-z0-9\-]{1,63}(?<!-)\.)+[A-Za-z]{2,63}", email
+	)) and len(email) <= 254
 	
 
 
@@ -142,20 +147,54 @@ def is_valid_email(email):
 async def paypal_webhook(request: Request):
 	
 	try:
-		event = await request.json()
-		event_type = event.get("event_type")
-		subscription_id = event.get("resource").get("id")
+		body_string = (await request.body()).decode("utf-8")
+		
 	except Exception as error:
 		print(error)
 	
 	if subscription_id == None:
 		return Response(status_code=200)
 	
+	
+	## TODO
+	
+	# Required PayPal headers
+	transmission_id = request.headers.get("Paypal-Transmission-Id")
+	transmission_time = request.headers.get("Paypal-Transmission-Time")
+	cert_url = request.headers.get("Paypal-Cert-Url")
+	actual_sig = request.headers.get("Paypal-Transmission-Sig")
+	auth_algo = request.headers.get("Paypal-Auth-Algo")
+	
+	if not all([transmission_id, transmission_time, cert_url, actual_sig, auth_algo]):
+		return Response(status_code=400)
+
+	# Fetch PayPal public certificate
+	cert = x509.load_pem_x509_certificate(request.get(cert_url).content, default_backend())
+	public_key = cert.public_key()
+
+	# Build expected string and verify signature
+	expected = f"{transmission_id}|{transmission_time}|{webhook_id}|{body_string}".encode()
+	try:
+		public_key.verify(
+			base64.b64decode(actual_sig),
+			expected,
+			padding.PKCS1v15(),
+			hashes.SHA256()
+		)
+	except Exception:
+		return Response(status_code=400)  # Signature invalid
+	
+	## ----------------------------------------------------------------------------------------------------
+	
+	
 	account = accounts.find_one({"subscription_id": subscription_id})
 	
 	if account == None:
 		return Response(status_code=200)
 	
+	event = json.loads(body_string)
+	event_type = event.get("event_type")
+	subscription_id = event.get("resource").get("id")
 	
 	if event_type == "BILLING.SUBSCRIPTION.CANCELLED" or event_type == "BILLING.SUBSCRIPTION.EXPIRED" or event_type == "BILLING.SUBSCRIPTION.SUSPENDED":
 		
