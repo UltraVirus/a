@@ -12,7 +12,8 @@ from fastapi.responses import PlainTextResponse
 from argon2 import PasswordHasher
 from PIL import Image
 from pathlib import Path
-import base64, json, http.client, uvicorn, asyncio, secrets, dataset, io, os, time, asyncio, re
+import base64, json, http.client, uvicorn, asyncio, secrets, dataset, io, os, time, asyncio, re, socket, ssl
+from cryptography.hazmat.primitives.serialization import load_pem_x509_certificate
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography import x509
@@ -32,6 +33,8 @@ password_hasher = PasswordHasher()
 file_lock = asyncio.Lock()
 api_key = os.getenv("open_ai_key")
 webhook_id = os.getenv("paypal_webhook_id")
+paypal_client_id = os.getenv("paypal_client_id")
+paypal_secret_key = os.getenv("paypal_secret_key")
 prompt = open("api/prompt.txt").read().strip().replace("\n", "\\n")
 verification_codes = {} # {"12345": "email@gmail.com"}
 image_id = int(len(os.listdir("database/images")) * 0.5)
@@ -40,6 +43,10 @@ accounts = database_file["accounts"]
 cards = database_file["cards"]
 tokens = database_file["tokens"]
 verification_lock = asyncio.Lock()
+paypal_certificate = None
+paypal_certificate_expiration = 0
+paypal_access_token = None
+paypal_access_token_expiration = 0
 
 app.add_middleware(
 	CORSMiddleware,
@@ -132,7 +139,23 @@ def is_valid_email(email):
 		r"(?!.*@.*@)(?!\.)(?!.*\.\.)[A-Za-z0-9._+\-!#$%&'*\/=?^_`{}|~]{1,64}(?<!@)(?<!\.)@"
 		r"(?:(?!-)[A-Za-z0-9\-]{1,63}(?<!-)\.)+[A-Za-z]{2,63}", email
 	)) and len(email) <= 254
-	
+
+def get_request(host, path):
+	A=ssl.create_default_context().wrap_socket(socket.socket(),server_hostname=host)
+	A.connect((host,443))
+	A.sendall(f"GET {path} HTTP/1.1\r\nHost:{host}\r\n\r\n".encode())
+	B=A.recv(2097152)
+	A.close()
+	return B.split(b"\r\n\r\n", 1)[1].decode()
+
+def post_request(host, path, body, header):
+	A=ssl.create_default_context().wrap_socket(socket.socket(),server_hostname=host)
+	A.connect((host,443))
+	A.sendall(f"POST {path} HTTP/1.0\r\nHost:{host}\r\n"+"".join(f"{C}:{D}\r\n"for C,D in header.items())+f"Content-Length:{len(body)}\r\n\r\n{body}".encode())
+	B=A.recv(2097152)
+	A.close()
+	return B.split(b"\r\n\r\n", 1)[1].decode()
+
 
 
 # ███████╗███╗░░██╗██████╗░██████╗░░█████╗░██╗███╗░░██╗████████╗░██████╗
@@ -145,56 +168,84 @@ def is_valid_email(email):
 @app.post("/webhook")
 
 async def paypal_webhook(request: Request):
+	global paypal_access_token
+	global paypal_access_token_expiration
 	
 	try:
-		body_string = (await request.body()).decode("utf-8")
-		
-	except Exception as error:
-		print(error)
+		body = await request.body()
+	except:
+		pass
+	
+	event = json.loads(body)
+	subscription_id = event.get("resource").get("id")
 	
 	if subscription_id == None:
 		return Response(status_code=200)
-	
-	
-	## TODO
-	
-	# Required PayPal headers
-	transmission_id = request.headers.get("Paypal-Transmission-Id")
-	transmission_time = request.headers.get("Paypal-Transmission-Time")
-	cert_url = request.headers.get("Paypal-Cert-Url")
-	actual_sig = request.headers.get("Paypal-Transmission-Sig")
-	auth_algo = request.headers.get("Paypal-Auth-Algo")
-	
-	if not all([transmission_id, transmission_time, cert_url, actual_sig, auth_algo]):
-		return Response(status_code=400)
-
-	# Fetch PayPal public certificate
-	cert = x509.load_pem_x509_certificate(request.get(cert_url).content, default_backend())
-	public_key = cert.public_key()
-
-	# Build expected string and verify signature
-	expected = f"{transmission_id}|{transmission_time}|{webhook_id}|{body_string}".encode()
-	try:
-		public_key.verify(
-			base64.b64decode(actual_sig),
-			expected,
-			padding.PKCS1v15(),
-			hashes.SHA256()
-		)
-	except Exception:
-		return Response(status_code=400)  # Signature invalid
-	
-	## ----------------------------------------------------------------------------------------------------
-	
 	
 	account = accounts.find_one({"subscription_id": subscription_id})
 	
 	if account == None:
 		return Response(status_code=200)
 	
-	event = json.loads(body_string)
+	certificate_url = request.headers.get("PAYPAL-CERT-URL")
+	print(certificate_url)
+	if certificate_url == None:
+		return Response(status_code=200)
+	
+	# Verify request #
+	
+	# Get access token if expired
+	current_timestamp = time.time()
+	
+	if paypal_access_token == None or current_timestamp > paypal_access_token_expiration:
+		print("yes")
+		try:
+			response = json.loads(post_request("api-m.sandbox.paypal.com", "/v1/oauth2/token", "grant_type=client_credentials", {"Authorization": f"Basic {base64.b64encode(f"{paypal_client_id}:{paypal_secret_key}".encode()).decode()}", "Content-Type": "application/x-www-form-urlencoded"}))
+			token = response["access_token"]
+			paypal_access_token_expiration = current_timestamp + response.get("expires_in") - 60
+		except:
+			return Response(status_code=200)
+	
+	
+	current_timestamp = time.time()
+	
+	if paypal_certificate == None or current_timestamp > paypal_certificate_expiration:
+		print("yes 2")
+		try:
+			
+			new_certificate = load_pem_x509_certificate(get_request(certificate_url.replace("https://", "").split("/", 1)[0],"/" + certificate_url.replace("https://", "").split("/", 1)[1]).encode())
+			print(new_certificate)
+			paypal_certificate = new_certificate
+			paypal_certificate_expiration = new_certificate.not_valid_after.timestamp() - 600
+			
+		except Exception as e:
+			print("Error fetching PayPal cert:", e)
+			return Response(status_code=200)
+	
+	# Verify signature
+	signature_bytes = base64.b64decode(request.headers.get("PAYPAL-TRANSMISSION-SIG"))
+	
+	try:
+		paypal_certificate.public_key().verify(
+			signature_bytes,
+			f'{request.headers.get("PAYPAL-TRANSMISSION-ID")}|{request.headers.get("PAYPAL-TRANSMISSION-TIME")}|{webhook_id}|'.encode() + body,
+			padding.PKCS1v15(),
+			hashes.SHA256()
+		)
+	except Exception:
+		print("Signature verification failed")
+		return Response(status_code=200)
+	
+
+	
+	## ----------------------------------------------------------------------------------------------------
+	
+	
+	
+	
+	
 	event_type = event.get("event_type")
-	subscription_id = event.get("resource").get("id")
+	
 	
 	if event_type == "BILLING.SUBSCRIPTION.CANCELLED" or event_type == "BILLING.SUBSCRIPTION.EXPIRED" or event_type == "BILLING.SUBSCRIPTION.SUSPENDED":
 		
