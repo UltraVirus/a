@@ -13,7 +13,6 @@ from argon2 import PasswordHasher
 from PIL import Image
 from pathlib import Path
 import base64, json, http.client, uvicorn, asyncio, secrets, dataset, io, os, time, asyncio, re, socket, ssl
-from cryptography.hazmat.primitives.serialization import load_pem_x509_certificate
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography import x509
@@ -213,7 +212,7 @@ async def paypal_webhook(request: Request):
 		print("yes 2")
 		try:
 			
-			new_certificate = load_pem_x509_certificate(get_request(certificate_url.replace("https://", "").split("/", 1)[0],"/" + certificate_url.replace("https://", "").split("/", 1)[1]).encode())
+			new_certificate = x509.load_pem_x509_certificate(get_request(certificate_url.replace("https://", "").split("/", 1)[0],"/" + certificate_url.replace("https://", "").split("/", 1)[1]).encode())
 			print(new_certificate)
 			paypal_certificate = new_certificate
 			paypal_certificate_expiration = new_certificate.not_valid_after.timestamp() - 600
