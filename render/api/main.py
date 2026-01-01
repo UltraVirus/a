@@ -174,7 +174,7 @@ async def paypal_webhook(request: Request):
 		body = await request.body()
 	except:
 		pass
-	
+	print(body)
 	event = json.loads(body)
 	subscription_id = event.get("resource").get("id")
 	
@@ -855,6 +855,7 @@ async def logout(request: Request, response: Response):
 	response.delete_cookie(key = "token")
 
 	return Response(status_code=200)
+
 
 
 
