@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PackStorm</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="search-overlay" id="searchOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; height: 60px; background: #181920; z-index: 9998; align-items: center; padding: 0 20px; gap: 15px;">
+        <button id="closeSearchOverlay" style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center;"><img src="./icons/back_icon.webp" alt="Back" style="width: 24px; height: 24px;"></button>
+        <input type="text" class="search-bar" id="searchBarOverlay" placeholder="Search cards..." style="max-width: none; flex: 1; opacity: 0.5;">
+    </div>
+    <img src="./icons/logo.webp" alt="PackStorm" style="position: fixed; left: 20px; top: 20px; height: 18px; width: auto; cursor: pointer; z-index: 10001;" id="logo">
+    <div class="topbar">
+        <img src="./icons/logo.webp" alt="PackStorm" class="logo" id="logo">
+        <div class="topbar-left">
+        </div>
+        <div class="topbar-right" id="topbarRight">
+            <button id="searchIconBtn" style="background: none; border: none; cursor: pointer; padding: 0;" class="search-icon-btn"><img src="./icons/search_icon.webp" alt="Search" style="width: 24px; height: 24px;"></button>
+            <button class="filter-btn" id="filterBtn" style="display: none;"><img src="./icons/filter_icon.webp" alt="Filter"></button>
+            <div class="profile-pic" id="profilePic" style="display: none;"></div>
+        </div>
+        <div class="profile-dropdown" id="profileDropdown">
+            <div class="profile-email" id="profileEmail"></div>
+            <button class="settings-btn" id="settingsBtn">Settings</button>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </div>
+
+    <button class="side-toggle" id="sideToggle">◀</button>
+
+    <div class="side-overlay" id="sideOverlay"></div>
+    <div class="side-menu" id="sideMenu">
+        <div id="scannedCards">
+            <div class="side-menu-empty" style="grid-column: 1/-1;">
+                <div class="side-menu-empty-icon">📋</div>
+                <div class="side-menu-empty-text">No cards scanned yet</div>
+                <div class="side-menu-empty-subtext">Scanned cards will appear here</div>
+            </div>
+        </div>
+    </div>
+    <div class="side-menu-header" id="sideMenuHeader">
+        <div class="side-menu-title">Scanned Cards This Session</div>
+    </div>
+
+    <div class="tab-content active" id="captureTab">
+        <video id="video" autoplay playsinline></video>
+        <div class="scan-status" id="scanStatus" style="display: none;"></div>
+        <div class="capture-controls">
+            <button class="capture-btn" id="captureBtn"></button>
+        </div>
+    </div>
+
+    <div class="tab-content" id="browseTab">
+        <div class="cards-grid" id="cardsGrid"></div>
+        <div class="loading" id="loading" style="display: none;">Loading...</div>
+    </div>
+
+    <div class="tab-content" id="collectionTab">
+        <div style="color: white; text-align: center; padding: 40px;">Collection - Coming Soon</div>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-item active" id="navCapture">
+            <img src="./icons/capture_icon.webp" alt="Capture" class="nav-icon">
+            <span class="nav-label">Capture</span>
+        </button>
+        <button class="nav-item" id="navBrowse">
+            <img src="./icons/browse_icon.webp" alt="Browse" class="nav-icon">
+            <span class="nav-label">Browse</span>
+        </button>
+        <button class="nav-item" id="navCollection">
+            <img src="./icons/collection_icon.webp" alt="Collection" class="nav-icon">
+            <span class="nav-label">Collection</span>
+        </button>
+    </div>
+
+    <div class="card-modal-overlay" id="cardModal">
+        <button class="card-modal-close" id="modalClose">×</button>
+        <div class="card-modal-container" id="modalBody"></div>
+    </div>
+
+    <div class="auth-modal" id="authModal">
+        <div class="auth-modal-content">
+            <h2 class="auth-modal-title" id="authTitle">Login</h2>
+            <div class="auth-inputs">
+                <input type="email" class="auth-input" id="authEmailLogin" placeholder="Email">
+                <input type="password" class="auth-input" id="authPasswordLogin" placeholder="Password">
+            </div>
+            <div class="auth-inputs" id="signupInputs" style="display: none;">
+                <input type="email" class="auth-input" id="authEmailSignup" placeholder="Email">
+                <input type="password" class="auth-input" id="authPasswordSignup" placeholder="Password">
+            </div>
+            <div id="termsDiv" style="display: none; align-items: center; gap: 8px; margin-bottom: 20px; color: #e4e4e7; font-size: 14px; width: 100%; font-family: 'Inter', sans-serif;">
+                <div id="termsCheckbox" style="width: 24px; height: 24px; cursor: pointer; background: rgba(228, 228, 231, 0.05); border: none; border-radius: 4px; opacity: 0.5; transition: all 0.2s; flex-shrink: 0;"></div>
+                <label style="cursor: default;">Accept <span style="text-decoration: underline; cursor: pointer;" id="termsText">terms and conditions</span></label>
+            </div>
+            <button class="auth-submit" id="authSubmit" disabled>Login</button>
+            <div style="text-align: center; margin-top: 20px; color: #a1a1aa; font-family: 'Inter', sans-serif;">
+                <span id="authToggleText">Don't have an account? </span>
+                <button id="authToggle" style="background: none; border: none; color: #ff5555; cursor: pointer; font-weight: 600; padding: 0; font-family: 'Inter', sans-serif; font-size: 15px;">Sign Up</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-modal" id="filterModal">
+        <div class="filter-modal-content">
+            <button class="modal-close" id="filterClose">×</button>
+            <h2 class="filter-modal-title">Filter Cards</h2>
+            
+            <div class="filter-group">
+                <label class="filter-label">Series</label>
+                <input type="text" class="filter-input" id="filterSeries" placeholder="Enter series name...">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Price Range</label>
+                <div class="price-slider" id="priceSlider">
+                    <div class="price-slider-track"></div>
+                    <div class="price-slider-range" id="priceRange"></div>
+                    <div class="price-slider-handle" id="minHandle"></div>
+                    <div class="price-slider-handle" id="maxHandle"></div>
+                </div>
+                <div class="price-inputs">
+                    <input type="number" class="filter-input" id="filterMinPrice" placeholder="Min $" readonly>
+                    <input type="number" class="filter-input" id="filterMaxPrice" placeholder="Max $" readonly>
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button class="filter-clear" id="filterClear">Clear</button>
+                <button class="filter-apply" id="filterApply">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-sidebar">
+            <div class="settings-header">
+                <h2 class="settings-title">Settings</h2>
+                <button class="settings-close" id="settingsClose">×</button>
+            </div>
+            <div class="settings-nav">
+                <button class="settings-nav-item active" id="navAccount">Account</button>
+                <button class="settings-nav-item" id="navSubscription">Subscription</button>
+            </div>
+        </div>
+        <div class="settings-content">
+            <div class="settings-section active" id="accountSection">
+                <h3 class="settings-section-title">Account Settings</h3>
+                <div class="account-field">
+                    <div class="account-field-info">
+                        <span class="account-field-label">Email</span>
+                        <span class="account-field-value" id="accountEmailDisplay">Loading...</span>
+                    </div>
+                    <button class="account-edit-btn" id="changeEmailBtn">
+                        <img src="./icons/edit_icon.webp" alt="Edit" class="account-edit-icon">
+                    </button>
+                </div>
+                <div class="account-field">
+                    <div class="account-field-info">
+                        <span class="account-field-label">Password</span>
+                        <span class="account-field-value">••••••••</span>
+                    </div>
+                    <button class="account-edit-btn" id="changePasswordBtn">
+                        <img src="./icons/edit_icon.webp" alt="Edit" class="account-edit-icon">
+                    </button>
+                </div>
+            </div>
+            <div class="settings-section" id="subscriptionSection">
+                <h3 class="settings-section-title">Subscription</h3>
+                <div style="color: #e4e4e7; font-size: 16px; margin-bottom: 10px;">
+                    <span style="color: #a1a1aa;">Subscription Plan:</span> 
+                    <span id="subscriptionPlanText" style="font-weight: 600; color: #ff5555;">Loading...</span>
+                </div>
+                <button style="padding: 10px 20px; background: #ff5555; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 20px;" id="viewSubscriptionsBtn">View All Plans</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="subscription-modal" id="subscriptionModal">
+        <button class="subscription-close" id="subscriptionClose">×</button>
+        <div class="subscription-header">
+            <h1 class="subscription-title">Choose Your Plan</h1>
+            <p class="subscription-subtitle">Unlock premium features with a subscription</p>
+        </div>
+        <div class="subscription-plans">
+            <div class="subscription-plan">
+                <h3 class="plan-name">Normal</h3>
+                <div class="plan-price">$9</div>
+                <div class="plan-period">per month</div>
+                <ul class="plan-features">
+                    <li class="plan-feature">✓ Feature 1</li>
+                    <li class="plan-feature">✓ Feature 2</li>
+                    <li class="plan-feature">✓ Feature 3</li>
+                </ul>
+                <button class="plan-button" id="selectNormalBtn">Select Normal</button>
+            </div>
+            <div class="subscription-plan">
+                <h3 class="plan-name">Pro</h3>
+                <div class="plan-price">$19</div>
+                <div class="plan-period">per month</div>
+                <ul class="plan-features">
+                    <li class="plan-feature">✓ All Normal features</li>
+                    <li class="plan-feature">✓ Pro Feature 1</li>
+                    <li class="plan-feature">✓ Pro Feature 2</li>
+                    <li class="plan-feature">✓ Pro Feature 3</li>
+                </ul>
+                <button class="plan-button">Coming Soon</button>
+            </div>
+            <div class="subscription-plan">
+                <h3 class="plan-name">Premium</h3>
+                <div class="plan-price">$29</div>
+                <div class="plan-period">per month</div>
+                <ul class="plan-features">
+                    <li class="plan-feature">✓ All Pro features</li>
+                    <li class="plan-feature">✓ Premium Feature 1</li>
+                    <li class="plan-feature">✓ Premium Feature 2</li>
+                    <li class="plan-feature">✓ Premium Feature 3</li>
+                    <li class="plan-feature">✓ Priority Support</li>
+                </ul>
+                <button class="plan-button">Coming Soon</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="payment-options-modal" id="paymentOptionsModal">
+        <div class="payment-options-content">
+            <button class="payment-options-close" id="paymentOptionsClose">×</button>
+            <h2 class="payment-options-title">Complete Subscription</h2>
+            <div id="paypal-button-container"></div>
+        </div>
+    </div>
+
+    <div class="prompt-modal" id="promptModal">
+        <div class="prompt-modal-content">
+            <h3 class="prompt-modal-title" id="promptTitle">Enter Information</h3>
+            <input type="password" class="prompt-input" id="promptInput1" placeholder="Current Password">
+            <input type="text" class="prompt-input" id="promptInput2" placeholder="New Value">
+            <div class="prompt-actions">
+                <button class="prompt-btn prompt-btn-cancel" id="promptCancel">Cancel</button>
+                <button class="prompt-btn prompt-btn-confirm" id="promptConfirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-modal" id="verifyCodeModal">
+        <button id="verifyCodeBackBtn" style="position: absolute; top: 20px; right: 20px; background: none; border: none; cursor: pointer; z-index: 10001; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;">
+            <img src="./icons/back_icon.webp" alt="Back" style="width: 24px; height: 24px;">
+        </button>
+        <div class="auth-modal-content">
+            <h2 class="auth-modal-title" id="verifyCodeTitle">Verify Your Email</h2>
+            <div style="color: #a1a1aa; font-size: 16px; text-align: center; margin-bottom: 30px;">
+                Enter the code we sent to your email
+            </div>
+            <div class="auth-inputs">
+                <input type="text" class="auth-input" id="verifyCodeInput" placeholder="Enter code">
+            </div>
+            <button class="auth-submit" id="verifyCodeSubmit">Verify</button>
+            <div id="verifyCodeError" style="color: #ef4444; font-size: 14px; text-align: center; margin-top: 20px; display: none;"></div>
+        </div>
+    </div>
+
+    <script src="https://www.paypal.com/sdk/js?client-id=AQZNGRwt_Gc8lZ7lBYfEgoHB3ogrbTayzcmOJcA5cK5LTLNxM1y9UbDBn-PfF30PTgJ_cqh2tOvwDgAi&vault=true&intent=subscription"></script>
+    <script src="script.js"></script>
+</body>
+</html>
