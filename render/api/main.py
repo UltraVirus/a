@@ -812,7 +812,7 @@ async def login(body: Request, response: Response): # body = "email,password": s
 		return Response(status_code=410)
 	
 	account = accounts.find_one(email = email)
-	
+	print(account)
 	if account == None and is_valid_email(email) == True and len(password) > 4:
 		return Response(status_code=410)
 	
@@ -853,4 +853,5 @@ async def logout(request: Request, response: Response):
 	response.delete_cookie(key = "token")
 
 	return Response(status_code=200)
+
 
