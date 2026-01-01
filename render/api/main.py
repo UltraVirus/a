@@ -727,9 +727,9 @@ async def verify_code(body: Request, response: Response):
 
 	if email not in verification_codes:
 		return Response(status_code=410)
-	
+	print(email, code, password)
 	if password != None: # If signup request
-		
+		print(password)
 		hashed_password = password_hasher.hash(password)
 		print("SIGNUP")
 		await asyncio.to_thread(lambda: accounts.insert(dict(email = email, hashed_password = hashed_password)) )
@@ -853,6 +853,7 @@ async def logout(request: Request, response: Response):
 	response.delete_cookie(key = "token")
 
 	return Response(status_code=200)
+
 
 
 
