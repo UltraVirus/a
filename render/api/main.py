@@ -701,8 +701,8 @@ async def signup(body: Request, response: Response): # body = "email,password": 
 	except:
 		return Response(status_code=410)
 	
-
-	if is_valid_email(email) == True and len(password) > 4 and accounts.find_one(email = email) == None:
+	print( accounts.find_one(email = email) )
+	if is_valid_email(email) == True and len(password) > 4:
 		
 		verification_codes[email] = [f"{secrets.randbelow(1000000):06d}", int(time.time())]
 		print(verification_codes[email])
@@ -853,3 +853,4 @@ async def logout(request: Request, response: Response):
 	response.delete_cookie(key = "token")
 
 	return Response(status_code=200)
+
