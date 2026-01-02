@@ -244,16 +244,23 @@ async def paypal_webhook(request: Request):
 	
 	
 	event_type = event.get("event_type")
-	
+	email = event.get("resource").get("custom_id")
 	
 	if event_type == "BILLING.SUBSCRIPTION.CANCELLED" or event_type == "BILLING.SUBSCRIPTION.EXPIRED" or event_type == "BILLING.SUBSCRIPTION.SUSPENDED":
 		
-		await asyncio.to_thread(lambda: accounts.update({"subscription_id": subscription_id}, {"subscription_id": None, "subscription_type": None, "subscription_timestamp": None}, ["subscription_id"]) )
+		await asyncio.to_thread(lambda: accounts.update( {"email": email, "subscription_type": None, "subscription_id": None, "subscription_timestamp": None}, ["email"] ))
 		
 	elif event_type == "BILLING.SUBSCRIPTION.ACTIVATED" or event_type == "BILLING.SUBSCRIPTION.RE-ACTIVATED":
 		
-		await asyncio.to_thread(lambda: accounts.update({"subscription_id": subscription_id}, {"subscription_timestamp": int(time.time())}, ["subscription_id"]) )
-	
+		if event["resource"]["plan_id"] == "P-18R598326J033122JNES35JI":
+			subscription_type = "1"
+		elif event["resource"]["plan_id"] == "P-XYZPROPLANID":
+			subscription_type = "2"
+		elif event["resource"]["plan_id"] == "P-ABCPREMIUMID":
+			subscription_type = "3"
+		
+		await asyncio.to_thread(lambda: accounts.update( {"email": email, "subscription_type": subscription_type, "subscription_id": subscription_id, "subscription_timestamp": int(time.time())}, ["email"] ))
+		
 	return Response(status_code=200)
 	
 
