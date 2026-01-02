@@ -174,14 +174,14 @@ async def paypal_webhook(request: Request):
 		body = await request.body()
 	except:
 		pass
-	print(body)
+	
 	event = json.loads(body)
 	subscription_id = event.get("resource").get("id")
 	
 	if subscription_id == None:
 		return Response(status_code=200)
 	
-	account = accounts.find_one({"subscription_id": subscription_id})
+	account = accounts.find_one(subscription_id = subscription_id)
 	
 	if account == None:
 		return Response(status_code=200)
@@ -701,8 +701,8 @@ async def signup(body: Request, response: Response): # body = "email,password": 
 	except:
 		return Response(status_code=410)
 	
-	print( accounts.find_one(email = email) )
-	if is_valid_email(email) == True and len(password) > 4:
+
+	if is_valid_email(email) == True and len(password) > 4 and accounts.find_one(email = email) == None:
 		
 		verification_codes[email] = [f"{secrets.randbelow(1000000):06d}", int(time.time())]
 		print(verification_codes[email])
@@ -727,14 +727,12 @@ async def verify_code(body: Request, response: Response):
 
 	if email not in verification_codes:
 		return Response(status_code=410)
-	print(email, code, password)
+	
 	if password != None: # If signup request
-		print(password)
+		
 		hashed_password = password_hasher.hash(password)
-		print("SIGNUP")
+		
 		await asyncio.to_thread(lambda: accounts.insert(dict(email = email, hashed_password = hashed_password)) )
-		account = accounts.find_one(email=email)
-		print(account["hashed_password"])
 	else:
 		account = accounts.find_one(email = email)
 		
@@ -814,11 +812,11 @@ async def login(body: Request, response: Response): # body = "email,password": s
 		return Response(status_code=410)
 	
 	account = accounts.find_one(email = email)
-	print(account, is_valid_email(email), len(password))
+	
 	if account == None and is_valid_email(email) == True and len(password) > 4:
 		return Response(status_code=410)
 	
-	print(password)
+	
 	
 	try:
 		
@@ -855,11 +853,3 @@ async def logout(request: Request, response: Response):
 	response.delete_cookie(key = "token")
 
 	return Response(status_code=200)
-
-
-
-
-
-
-
-
