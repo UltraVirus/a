@@ -12,7 +12,7 @@ from fastapi.responses import PlainTextResponse
 from argon2 import PasswordHasher
 from PIL import Image
 from pathlib import Path
-import base64, json, http.client, uvicorn, asyncio, secrets, dataset, io, os, time, asyncio, re, socket, ssl
+import base64, json, http.client, uvicorn, asyncio, secrets, dataset, io, os, time, asyncio, re, socket, ssl, zlib
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography import x509
@@ -519,10 +519,13 @@ async def verify_subscription(request: Request): # TODO Add account logged in an
 			connection.request(
 				"PATCH",
 				f"/v1/billing/subscriptions/{previous_subscription_id}",
-				body='[{"op":"replace","path":"/plan_id","value":"' + subscription_info["plan_id"] + '"}]',
-				headers='{"Authorization":"Bearer ' + token + '","Content-Type":"application/json"}'
+				body=f'[{{"op":"replace","path":"/plan_id","value":"{subscription_info["plan_id"]}"}},{{"op":"replace","path":"/custom_id","value":"{account_token_data["email"]}"}}]', #'[{"op":"replace","path":"/plan_id","value":"' + subscription_info["plan_id"] + '"}]'
+				headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"}# '{"Authorization":"Bearer ' + token + '","Content-Type":"application/json"}'
 			)
-			
+			response = connection.getresponse()
+			subscription_info = json.loads(response.read().decode())
+			print(subscription_info)
+			connection.close()
 		except:
 			pass
 	else:
