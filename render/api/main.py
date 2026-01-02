@@ -440,17 +440,17 @@ async def verify_subscription(request: Request): # TODO Add account logged in an
 
 	# Check if user is logged into valid account
 	token = request.cookies.get("token")
-	
+	print(token)
 	if token == None:
 		return Response(status_code=410)
 	
 	account_token_data = tokens.find_one(token = token)
-	
+	print(account_token_data)
 	if account_token_data == None or account_token_data["email"] == None:
 		return Response(status_code=410)
 	
 	account = accounts.find_one(email = account_token_data["email"])
-	
+	print(account)
 	if account == None:
 		return Response(status_code=410)
 	
