@@ -766,7 +766,7 @@ async def verify_code(body: Request, response: Response):
 		value = token,
 		httponly = True,
 		secure = True,
-		samesite = "lax"
+		samesite = "none"
 	)
 
 	await asyncio.to_thread(lambda: tokens.insert({"email": email, "token": token}) )
@@ -792,7 +792,9 @@ async def verify_code(body: Request, response: Response):
 			return response
 		else:
 			print(str(subscription_type))
-			return PlainTextResponse(str(subscription_type))
+			response.body = str(subscription_type).encode()
+			response.status_code = 200
+			return response
 	else:
 		response.status_code = 200
 		return response
