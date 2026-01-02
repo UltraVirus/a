@@ -765,7 +765,7 @@ async def verify_code(body: Request, response: Response):
 		key = "token",
 		value = token,
 		httponly = True,
-		secure = False,
+		secure = True,
 		samesite = "lax"
 	)
 
@@ -794,7 +794,8 @@ async def verify_code(body: Request, response: Response):
 			print(str(subscription_type))
 			return PlainTextResponse(str(subscription_type))
 	else:
-		return Response(status_code=200)
+		response.status_code = 200
+		return response
 
 
 
