@@ -463,14 +463,14 @@ async def verify_subscription(request: Request): # TODO Add account logged in an
 			"POST",
 			"/v1/oauth2/token",
 			"grant_type=client_credentials",
-			{"Authorization": f"Basic {base64.b64encode(f"{open("C:\\Users\\xzock\\Documents\\Code\\packstorm_webapp\\api\\client_id.txt").read().strip()}:{open("C:\\Users\\xzock\\Documents\\Code\\packstorm_webapp\\api\\secret_key.txt").read().strip()}".encode()).decode()}", "Content-Type": "application/x-www-form-urlencoded"}
+			{"Authorization": f"Basic {base64.b64encode(f"{paypal_client_id}:{paypal_secret_key}".encode()).decode()}", "Content-Type": "application/x-www-form-urlencoded"}
 		)
 		
 		token = json.loads(connection.getresponse().read())["access_token"]
 		
 	except:
 		return Response(status_code=410)
-	
+	print(token)
 	
 	subscription_id = (await request.body()).decode()
 	
@@ -478,7 +478,7 @@ async def verify_subscription(request: Request): # TODO Add account logged in an
 		return Response(status_code=410)
 	
 	subscription_status = None
-	
+	print(subscription_id)
 	try:
 		# Check if subscription is active
 		
@@ -496,7 +496,7 @@ async def verify_subscription(request: Request): # TODO Add account logged in an
 	except:
 		return Response(status_code=410)
 	
-	
+	print(subscription_status)
 	if (subscription_status == "ACTIVE") == False:
 		return Response(status_code=410)
 	
