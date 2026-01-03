@@ -139,13 +139,15 @@ def is_valid_email(email):
 		r"(?:(?!-)[A-Za-z0-9\-]{1,63}(?<!-)\.)+[A-Za-z]{2,63}", email
 	)) and len(email) <= 254
 
-def get_request(host, path):
+def get_request(host, path, header):
 	A=ssl.create_default_context().wrap_socket(socket.socket(),server_hostname=host)
 	A.connect((host,443))
-	A.sendall(f"GET {path} HTTP/1.1\r\nHost:{host}\r\n\r\n".encode())
-	B=A.recv(2097152)
+	A.sendall((f"GET {path} HTTP/1.0\r\nHost:{host}\r\n"+"".join(f"{C}:{D}\r\n" for C,D in header.items())+"\r\n").encode())
+	B = bytearray()
+	while C := A.recv(16384):
+		B.extend(C)
 	A.close()
-	return B.split(b"\r\n\r\n", 1)[1].decode()
+	return json.loads(B[B.find(b"\r\n\r\n")+4:])
 
 def post_request(host, path, body, header):
 	A=ssl.create_default_context().wrap_socket(socket.socket(),server_hostname=host)
@@ -483,7 +485,7 @@ async def verify_subscription(request: Request): # TODO Add account logged in an
 	print(subscription_id)
 	try:
 		# Check if subscription is active
-		
+		get_request("api-m.sandbox.paypal.com", f"/v1/billing/subscriptions/{subscription_id}", {"Authorization": f"Bearer {token}"})
 		connection = http.client.HTTPSConnection("api-m.sandbox.paypal.com")
 		connection.request(
 			"GET",
