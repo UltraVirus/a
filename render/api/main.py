@@ -139,6 +139,16 @@ def is_valid_email(email):
 		r"(?:(?!-)[A-Za-z0-9\-]{1,63}(?<!-)\.)+[A-Za-z]{2,63}", email
 	)) and len(email) <= 254
 
+def get_request_no_header(host, path):
+	A=ssl.create_default_context().wrap_socket(socket.socket(),server_hostname=host)
+	A.connect((host,443))
+	A.sendall(f"GET {path} HTTP/1.0\r\nHost: {host}\r\n\r\n".encode())
+	B = bytearray()
+	while C := A.recv(16384):
+		B.extend(C)
+	A.close()
+	return json.loads(B[B.find(b"\r\n\r\n")+4:])
+
 def get_request(host, path, header):
 	A=ssl.create_default_context().wrap_socket(socket.socket(),server_hostname=host)
 	A.connect((host,443))
@@ -192,9 +202,9 @@ async def paypal_webhook(request: Request):
 	#if account == None:
 	#	return Response(status_code=200)
 	
-	certificate_url = request.headers.get("PAYPAL-CERT-URL")
-	print(certificate_url)
-	if certificate_url == None:
+	certificate_url_path = request.headers.get("PAYPAL-CERT-URL")[22:]
+	print(certificate_url_path)
+	if certificate_url_path == None:
 		return Response(status_code=200)
 	
 	# Verify request #
@@ -218,7 +228,7 @@ async def paypal_webhook(request: Request):
 		print("yes 2")
 		try:
 			
-			new_certificate = x509.load_pem_x509_certificate(get_request(certificate_url.replace("https://", "").split("/", 1)[0],"/" + certificate_url.replace("https://", "").split("/", 1)[1]))
+			new_certificate = x509.load_pem_x509_certificate(get_request_no_header("api.paypal.com", certificate_url_path))
 			print(new_certificate)
 			paypal_certificate = new_certificate
 			paypal_certificate_expiration = new_certificate.not_valid_after.timestamp() - 600
