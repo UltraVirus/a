@@ -147,7 +147,7 @@ def get_request_no_header(host, path):
 	while C := A.recv(16384):
 		B.extend(C)
 	A.close()
-	return json.loads(B[B.find(b"\r\n\r\n")+4:])
+	return B[B.find(b"\r\n\r\n")+4:]
 
 def get_request(host, path, header):
 	A=ssl.create_default_context().wrap_socket(socket.socket(),server_hostname=host)
