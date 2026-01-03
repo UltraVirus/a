@@ -171,8 +171,8 @@ def post_request(host, path, body, header):
 @app.post("/webhook")
 
 async def paypal_webhook(request: Request):
-	global paypal_access_token
-	global paypal_access_token_expiration
+	global paypal_certificate
+	global paypal_certificate_expiration
 	
 	try:
 		body = await request.body()
@@ -200,16 +200,16 @@ async def paypal_webhook(request: Request):
 	# Verify request #
 	
 	# Get access token if expired
-	current_timestamp = time.time()
-	
-	if paypal_access_token == None or current_timestamp > paypal_access_token_expiration:
-		print("yes")
-		try:
-			response = post_request("api-m.sandbox.paypal.com", "/v1/oauth2/token", "grant_type=client_credentials", {"Authorization": f"Basic {base64.b64encode(f"{paypal_client_id}:{paypal_secret_key}".encode()).decode()}", "Content-Type": "application/x-www-form-urlencoded"})
-			token = response["access_token"]
-			paypal_access_token_expiration = current_timestamp + response.get("expires_in") - 60
-		except:
-			return Response(status_code=200)
+	#current_timestamp = time.time()
+	#
+	#if paypal_access_token == None or current_timestamp > paypal_access_token_expiration:
+	#	print("yes")
+	#	try:
+	#		response = post_request("api-m.sandbox.paypal.com", "/v1/oauth2/token", "grant_type=client_credentials", {"Authorization": f"Basic {base64.b64encode(f"{paypal_client_id}:{paypal_secret_key}".encode()).decode()}", "Content-Type": "application/x-www-form-urlencoded"})
+	#		token = response["access_token"]
+	#		paypal_access_token_expiration = current_timestamp + response.get("expires_in") - 60
+	#	except:
+	#		return Response(status_code=200)
 	
 	
 	current_timestamp = time.time()
