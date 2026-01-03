@@ -485,15 +485,15 @@ async def verify_subscription(request: Request): # TODO Add account logged in an
 	print(subscription_id)
 	try:
 		# Check if subscription is active
-		get_request("api-m.sandbox.paypal.com", f"/v1/billing/subscriptions/{subscription_id}", {"Authorization": f"Bearer {token}"})
-		connection = http.client.HTTPSConnection("api-m.sandbox.paypal.com")
-		connection.request(
-			"GET",
-			f"/v1/billing/subscriptions/{subscription_id}",
-			headers={"Authorization": f"Bearer {token}"}
-		)
+		subscription_info = get_request("api-m.sandbox.paypal.com", f"/v1/billing/subscriptions/{subscription_id}", {"Authorization": f"Bearer {token}"})
+		#connection = http.client.HTTPSConnection("api-m.sandbox.paypal.com")
+		#connection.request(
+		#	"GET",
+		#	f"/v1/billing/subscriptions/{subscription_id}",
+		#	headers={"Authorization": f"Bearer {token}"}
+		#)
 		
-		subscription_info = json.loads(connection.getresponse().read().decode())
+		#subscription_info = json.loads(connection.getresponse().read().decode())
 		
 		subscription_status = subscription_info.get("status", "")
 		
