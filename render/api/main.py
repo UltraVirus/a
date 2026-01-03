@@ -152,7 +152,7 @@ def post_request(host, path, body, header):
 	A.connect((host,443))
 	A.sendall((f"POST {path} HTTP/1.0\r\nHost:{host}\r\n"+"".join(f"{C}:{D}\r\n"for C,D in header.items())+f"Content-Length:{len(body)}\r\n\r\n{body}").encode())
 	B = bytearray()
-	while C := A.recv(2097152):
+	while C:=A.recv(2097152):
 		B.extend(C)
 	A.close()
 	return json.loads(B[B.find(b"\r\n\r\n")+4:])
@@ -449,34 +449,25 @@ async def verify_subscription(request: Request): # TODO Add account logged in an
 
 	# Check if user is logged into valid account
 	token = request.cookies.get("token")
-	print(token)
+	
 	if token == None:
 		return Response(status_code=410)
 	
 	account_token_data = tokens.find_one(token = token)
-	print(account_token_data)
+	
 	if account_token_data == None or account_token_data["email"] == None:
 		return Response(status_code=410)
 	
 	account = accounts.find_one(email = account_token_data["email"])
-	print(account)
+	
 	if account == None:
 		return Response(status_code=410)
 	
 	
 	try:
 		# Get paypal access token
-		token = json.loads(post_request("api-m.sandbox.paypal.com", "/v1/oauth2/token", "grant_type=client_credentials", {"Authorization": f"Basic {base64.b64encode(f"{paypal_client_id}:{paypal_secret_key}".encode()).decode()}", "Content-Type": "application/x-www-form-urlencoded"}))["access_token"]
+		token = post_request("api-m.sandbox.paypal.com", "/v1/oauth2/token", "grant_type=client_credentials", {"Authorization": f"Basic {base64.b64encode(f"{paypal_client_id}:{paypal_secret_key}".encode()).decode()}", "Content-Type": "application/x-www-form-urlencoded"})["access_token"]
 		print(token)
-		#connection = http.client.HTTPSConnection("api-m.sandbox.paypal.com")
-		#connection.request(
-		#	"POST",
-		#	"/v1/oauth2/token",
-		#	"grant_type=client_credentials",
-		#	{"Authorization": f"Basic {base64.b64encode(f"{paypal_client_id}:{paypal_secret_key}".encode()).decode()}", "Content-Type": "application/x-www-form-urlencoded"}
-		#)
-		
-		#token = json.loads(connection.getresponse().read())["access_token"]
 		
 	except Exception as error:
 		print(error)
