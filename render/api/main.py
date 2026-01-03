@@ -187,10 +187,10 @@ async def paypal_webhook(request: Request):
 	if subscription_id == None:
 		return Response(status_code=200)
 	
-	account = accounts.find_one(subscription_id = subscription_id)
-	
-	if account == None:
-		return Response(status_code=200)
+	#account = accounts.find_one(subscription_id = subscription_id)
+	#
+	#if account == None:
+	#	return Response(status_code=200)
 	
 	certificate_url = request.headers.get("PAYPAL-CERT-URL")
 	print(certificate_url)
@@ -205,7 +205,7 @@ async def paypal_webhook(request: Request):
 	if paypal_access_token == None or current_timestamp > paypal_access_token_expiration:
 		print("yes")
 		try:
-			response = json.loads(post_request("api-m.sandbox.paypal.com", "/v1/oauth2/token", "grant_type=client_credentials", {"Authorization": f"Basic {base64.b64encode(f"{paypal_client_id}:{paypal_secret_key}".encode()).decode()}", "Content-Type": "application/x-www-form-urlencoded"}))
+			response = post_request("api-m.sandbox.paypal.com", "/v1/oauth2/token", "grant_type=client_credentials", {"Authorization": f"Basic {base64.b64encode(f"{paypal_client_id}:{paypal_secret_key}".encode()).decode()}", "Content-Type": "application/x-www-form-urlencoded"})
 			token = response["access_token"]
 			paypal_access_token_expiration = current_timestamp + response.get("expires_in") - 60
 		except:
@@ -218,7 +218,7 @@ async def paypal_webhook(request: Request):
 		print("yes 2")
 		try:
 			
-			new_certificate = x509.load_pem_x509_certificate(get_request(certificate_url.replace("https://", "").split("/", 1)[0],"/" + certificate_url.replace("https://", "").split("/", 1)[1]).encode())
+			new_certificate = x509.load_pem_x509_certificate(get_request(certificate_url.replace("https://", "").split("/", 1)[0],"/" + certificate_url.replace("https://", "").split("/", 1)[1]))
 			print(new_certificate)
 			paypal_certificate = new_certificate
 			paypal_certificate_expiration = new_certificate.not_valid_after.timestamp() - 600
