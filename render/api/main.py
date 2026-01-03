@@ -464,18 +464,20 @@ async def verify_subscription(request: Request): # TODO Add account logged in an
 	
 	try:
 		# Get paypal access token
+		token = json.loads(post_request("api-m.sandbox.paypal.com", "/v1/oauth2/token", "grant_type=client_credentials", {"Authorization": f"Basic {base64.b64encode(f"{paypal_client_id}:{paypal_secret_key}".encode()).decode()}", "Content-Type": "application/x-www-form-urlencoded"}))["access_token"]
+		print(token)
+		#connection = http.client.HTTPSConnection("api-m.sandbox.paypal.com")
+		#connection.request(
+		#	"POST",
+		#	"/v1/oauth2/token",
+		#	"grant_type=client_credentials",
+		#	{"Authorization": f"Basic {base64.b64encode(f"{paypal_client_id}:{paypal_secret_key}".encode()).decode()}", "Content-Type": "application/x-www-form-urlencoded"}
+		#)
 		
-		connection = http.client.HTTPSConnection("api-m.sandbox.paypal.com")
-		connection.request(
-			"POST",
-			"/v1/oauth2/token",
-			"grant_type=client_credentials",
-			{"Authorization": f"Basic {base64.b64encode(f"{paypal_client_id}:{paypal_secret_key}".encode()).decode()}", "Content-Type": "application/x-www-form-urlencoded"}
-		)
+		#token = json.loads(connection.getresponse().read())["access_token"]
 		
-		token = json.loads(connection.getresponse().read())["access_token"]
-		
-	except:
+	except Exception as error:
+		print(error)
 		return Response(status_code=410)
 	print(token)
 	
@@ -515,29 +517,6 @@ async def verify_subscription(request: Request): # TODO Add account logged in an
 		subscription_type = "3"
 	
 	
-	previous_subscription_id = account.get("subscription_id")
-	
-	if previous_subscription_id != None and previous_subscription_id != subscription_id:
-		
-		try:
-			# Update subscription
-			
-			connection = http.client.HTTPSConnection("api-m.sandbox.paypal.com")
-			connection.request(
-				"PATCH",
-				f"/v1/billing/subscriptions/{previous_subscription_id}",
-				body=f'[{{"op":"replace","path":"/plan_id","value":"{subscription_info["plan_id"]}"}},{{"op":"replace","path":"/custom_id","value":"{account_token_data["email"]}"}}]', #'[{"op":"replace","path":"/plan_id","value":"' + subscription_info["plan_id"] + '"}]'
-				headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"}# '{"Authorization":"Bearer ' + token + '","Content-Type":"application/json"}'
-			)
-			response = connection.getresponse()
-			subscription_info = json.loads(response.read().decode())
-			print(subscription_info)
-			connection.close()
-		except:
-			pass
-	else:
-		await asyncio.to_thread(lambda: accounts.update( {"email": account_token_data["email"], "subscription_id": subscription_id, "subscription_timestamp": int(time.time()), "subscription_type": subscription_type }, ["email"]) )
-
 	return PlainTextResponse(subscription_type)
 
 
