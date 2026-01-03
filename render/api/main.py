@@ -151,10 +151,11 @@ def post_request(host, path, body, header):
 	A=ssl.create_default_context().wrap_socket(socket.socket(),server_hostname=host)
 	A.connect((host,443))
 	A.sendall((f"POST {path} HTTP/1.0\r\nHost:{host}\r\n"+"".join(f"{C}:{D}\r\n"for C,D in header.items())+f"Content-Length:{len(body)}\r\n\r\n{body}").encode())
-	A.recv(2097152)
-	B=A.recv(2097152)
+	B = bytearray()
+	while C := A.recv(2097152):
+		B.extend(C)
 	A.close()
-	return json.loads(B.decode())
+	return json.loads(B[B.find(b"\r\n\r\n")+4:])
 
 
 
