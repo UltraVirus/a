@@ -688,7 +688,7 @@ document.getElementById('selectNormalBtn').onclick = () => {
             },
             onApprove: async function(data, actions) {
                 try {
-                    const response = await fetch(`https://api-xbll.onrender.com/subscription`, {
+                    const response = await fetch(`https://api-xbll.onrender.com/verify_subscription`, {
                         method: 'PUT',
                         credentials: 'include',
                         headers: { "Content-Type": "application/json" },
